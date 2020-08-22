@@ -1,0 +1,117 @@
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+# Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+# http:
+#   base_url: example.duckdns.org:8123
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+# Enable Cameras DT -3/2020
+camera:
+   - platform: generic
+     name: front
+     still_image_url: !secret Camera_URL
+     stream_source: !secret CameraFront_Source 
+
+   - platform: generic
+     name: patio
+     still_image_url: !secret Camera_URL
+     stream_source: !secret CameraPatio_Source 
+
+   - platform: generic
+     name: frontstreet
+     still_image_url: !secret Camera_URL
+     stream_source: !secret CameraFrontStreet_Source 
+
+   - platform: generic
+     name: fourpeaks
+     still_image_url: !secret Camera_URL
+     stream_source: !secret CameraFourPeaks_Source 
+    
+#Enable stream
+stream:
+
+climate:
+# DT 3/2020 added entry for thermostat
+  - platform: honeywell
+    username: !secret honeywell_username
+    password: !secret honeywell_password
+    region: us
+
+tuya:
+  username: !secret tuya_username
+  password: !secret tuya_password
+  country_code: 1
+
+recorder:
+  db_url: !secret recorder_db_url
+  
+influxdb:
+  host: a0d7b954-influxdb
+  port: 8086
+  database: homeassistant
+  username: homeassistant
+  password: !secret influxdb_password
+  max_retries: 3
+  default_measurement: state
+
+# Example configuration.yaml entry
+sensor:
+  - platform: systemmonitor
+    resources:
+      - type: disk_use_percent
+        arg: /home
+      - type: memory_free
+      
+#==================
+#=== System Sensors
+#==================
+
+  - platform: command_line
+    name: RPi CPU Temperature
+    command: "cat /sys/class/thermal/thermal_zone0/temp"
+    value_template: "{{ value | multiply(0.001) | round(2) }}"
+
+  #===========================================
+  #=== Latest Tasmota firmware version
+  #===========================================
+  - platform: command_line
+    name: Tasmota Current Version
+    command: "curl -s https://github.com/arendst/Tasmota/releases/latest | cut -d'\"' -f2 | rev | cut -d'/' -f1 | rev"
+    scan_interval: 86400
+
+  #==============================
+  #=== Installed hass.io version
+  #==============================
+  - platform: version
+    name: Installed Version
+    source: local
+
+  #================================
+  #=== Latest Available HA Version
+  #================================
+  - platform: version
+    name: Latest Available Version
+    beta: false
+    image: raspberrypi4
+    source: hassio
+
+  #=============================================
+  #=== Last boot time, Disk, memory & CPU usage
+  #=============================================
+  - platform: systemmonitor
+    resources:
+      - type: last_boot
+      - type: disk_use_percent
+        arg: /
+      - type: memory_use_percent
+      - type: processor_use
