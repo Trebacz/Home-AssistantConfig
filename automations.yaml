@@ -1,1 +1,132 @@
-[]
+- id: '1598726114260'
+  alias: Garage Door Close if Open
+  description: ''
+  trigger:
+  - entity_id: scene.gdlnta2yonphwyhh
+    for: 0:05:00
+    platform: state
+    to: 'True'
+  condition: []
+  action:
+  - scene: scene.0f4bmmtdbgehxkp9
+  mode: single
+- id: '1599182935537'
+  alias: Kitchen Leak Sensor Wet
+  description: ''
+  trigger:
+  - device_id: 81603e0c094d4158b29605ed1a7396c8
+    domain: binary_sensor
+    entity_id: binary_sensor.water_leak_sensor_water
+    platform: device
+    type: moist
+  condition: []
+  action:
+  - data:
+      message: Kitchen leak sensor is wet
+    service: persistent_notification.create
+  - data:
+      message: Kitchen leak sesor is wet
+    service: notify.notify
+  mode: single
+- id: '1599183199313'
+  alias: Leak Sensor Battery
+  description: ''
+  trigger:
+  - below: 25
+    device_id: 81603e0c094d4158b29605ed1a7396c8
+    domain: sensor
+    entity_id: sensor.water_leak_sensor_battery
+    platform: device
+    type: battery_level
+  condition: []
+  action:
+  - data:
+      message: Leak Sensor Battery Low
+    service: persistent_notification.create
+  mode: single
+- id: '1599415392223'
+  alias: Leak Sensor SMS
+  description: ''
+  trigger:
+  - device_id: 81603e0c094d4158b29605ed1a7396c8
+    domain: binary_sensor
+    entity_id: binary_sensor.water_leak_sensor_water
+    platform: device
+    type: moist
+  condition: []
+  action:
+  - data:
+      message: Water sensor is wet
+      target: '+18155292638'
+    service: notify.ha_twillio
+  mode: single
+- id: '1599510095098'
+  alias: Turn off AC and open windows
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.warm_inside
+    platform: state
+  condition:
+  - condition: device
+    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
+    domain: climate
+    entity_id: climate.bedroom_2
+    hvac_mode: cool
+    type: is_hvac_mode
+  - after: sunrise
+    after_offset: '1:00:00'
+    condition: sun
+  - before: '17:00:00'
+    condition: time
+  action:
+  - data:
+      message: Turn off the AC and consider opening the windows tonight
+    service: persistent_notification.create
+  - data:
+      message: Turn off the AC and consider opening the windows tonight
+    service: notify.notify
+  mode: single
+- id: '1599510701899'
+  alias: Close windows
+  description: ''
+  trigger:
+  - entity_id: alert.cool_inside
+    platform: state
+  condition:
+  - condition: device
+    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
+    domain: climate
+    entity_id: climate.bedroom_2
+    hvac_mode: 'off'
+    type: is_hvac_mode
+  action:
+  - data:
+      message: Time to close the windows to keep the house cool.
+    service: persistent_notification.create
+  - data:
+      message: Time to close the windows to keep the house cool.
+    service: notify.notify
+  mode: single
+- id: '1599511189810'
+  alias: Open Windows
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.warm_inside
+    platform: state
+  condition:
+  - condition: device
+    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
+    domain: climate
+    entity_id: climate.bedroom_2
+    hvac_mode: 'off'
+    type: is_hvac_mode
+  - before: '22:00:00'
+    condition: time
+  action:
+  - data:
+      message: Open the windows - it's cooler outside.
+    service: persistent_notification.create
+  - data:
+      message: Open the windows - it's cooler outside.
+    service: notify.notify
+  mode: single
