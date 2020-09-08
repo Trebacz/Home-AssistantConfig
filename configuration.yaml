@@ -14,6 +14,10 @@ scene: !include scenes.yaml
 # Text to speech
 tts:
   - platform: google_translate
+  
+homeassistant:
+  auth_mfa_modules:
+    - type: totp
 
 # Enable Cameras DT -3/2020
 camera:
@@ -45,12 +49,9 @@ climate:
   - platform: honeywell
     username: !secret honeywell_username
     password: !secret honeywell_password
-    region: us
 
-tuya:
-  username: !secret tuya_username
-  password: !secret tuya_password
-  country_code: 1
+google_assistant:
+  project_id: home-assistant-d67c1
 
 recorder:
   db_url: !secret recorder_db_url
@@ -63,15 +64,74 @@ influxdb:
   password: !secret influxdb_password
   max_retries: 3
   default_measurement: state
+  
+twilio:
+  account_sid: !secret twillio_sid
+  auth_token: !secret twillio_token
+  
+notify:
+  - name: HA_Twillio
+    platform: twilio_sms
+    from_number: +14805737302
 
-# Example configuration.yaml entry
+binary_sensor:
+  - platform: ping
+    host: 192.168.0.1
+    name: Smoothwall Ping
+  - platform: ping
+    host: trebacz.com
+    name: Trebacz Ping
+  - platform: ping
+    host: google.com
+    name: Google Intenet Ping
+  - platform: ping
+    host: cam4.trebacz.com
+    name: Patio Camera Ping
+  - platform: template
+    sensors:
+      warm_inside:
+        friendly_name: "Inside temperature higher than outside"
+        value_template: "{{ float(states('sensor.average_house_temp')) >= float(states('sensor.weatherbit_temperature')) }}"
+  - platform: template
+    sensors:
+      cool_inside:
+        friendly_name: "Inside temperature cooler than outside"
+        value_template: "{{ float(states('sensor.average_house_temp')) < float(states('sensor.weatherbit_temperature')) }}"
+
+
+    # Example configuration.yaml entry
 sensor:
+  - platform: untappd
+    username: Trebacz
+    id: !secret untapped_id
+    secret: !secret untapped_secret
+    
   - platform: systemmonitor
     resources:
       - type: disk_use_percent
         arg: /home
       - type: memory_free
       
+  - platform: template
+    sensors:
+      # Gets temperature from Honeywell climate
+      master_bedroom_temperature:
+        friendly_name: Master Bedroom Temperature
+        unit_of_measurement: '°F'
+        value_template: "{{ state_attr('climate.bedroom', 'current_temperature') }}"
+      # Gets temperature from Honeywell climate
+      southbedrooms_temperature:
+        friendly_name: South Bedrooms Temperature
+        unit_of_measurement: '°F'
+        value_template: "{{ state_attr('climate.south_bedrooms', 'current_temperature') }}"
+      # Calculates Average House Temperature
+      average_house_temp:
+        friendly_name: 'Average House Temp'
+        unit_of_measurement: "°F"
+        value_template: >-
+          {{ (float(states('sensor.master_bedroom_temperature')) + float(states('sensor.southbedrooms_temperature')) + float(states('sensor.water_leak_sensor_temperature_measurement'))) / 3 | round(2) }}
+
+
 #==================
 #=== System Sensors
 #==================
