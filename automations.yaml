@@ -65,7 +65,9 @@
   description: ''
   trigger:
   - entity_id: binary_sensor.warm_inside
+    from: 'off'
     platform: state
+    to: 'on'
   condition:
   - condition: device
     device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
@@ -76,7 +78,7 @@
   - after: sunrise
     after_offset: '1:00:00'
     condition: sun
-  - before: '17:00:00'
+  - before: '22:00:00'
     condition: time
   action:
   - data:
@@ -90,13 +92,19 @@
   alias: Close windows
   description: ''
   trigger:
-  - entity_id: alert.cool_inside
+  - entity_id: binary_sensor.cool_inside
     platform: state
   condition:
   - condition: device
     device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
     domain: climate
     entity_id: climate.bedroom_2
+    hvac_mode: 'off'
+    type: is_hvac_mode
+  - condition: device
+    device_id: 05df6b1ce2c843f38568ec74f8913155
+    domain: climate
+    entity_id: climate.south_bedrooms_2
     hvac_mode: 'off'
     type: is_hvac_mode
   action:
@@ -120,7 +128,8 @@
     entity_id: climate.bedroom_2
     hvac_mode: 'off'
     type: is_hvac_mode
-  - before: '22:00:00'
+  - after: '5:00:00'
+    before: '22:00:00'
     condition: time
   action:
   - data:
