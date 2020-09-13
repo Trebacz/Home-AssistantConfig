@@ -77,15 +77,23 @@ notify:
 binary_sensor:
   - platform: ping
     host: 192.168.0.1
+    count: 5
+    scan_interval: 60
     name: Smoothwall Ping
   - platform: ping
     host: trebacz.com
+    count: 5
+    scan_interval: 60
     name: Trebacz Ping
   - platform: ping
     host: google.com
+    count: 5
+    scan_interval: 60
     name: Google Intenet Ping
   - platform: ping
     host: cam4.trebacz.com
+    count: 5
+    scan_interval: 60
     name: Patio Camera Ping
   - platform: template
     sensors:
@@ -175,3 +183,10 @@ sensor:
         arg: /
       - type: memory_use_percent
       - type: processor_use
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 192.168.0.180
+  ip_ban_enabled: true
+  login_attempts_threshold: 5
