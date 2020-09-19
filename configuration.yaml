@@ -18,6 +18,7 @@ tts:
 homeassistant:
   auth_mfa_modules:
     - type: totp
+  unit_system: imperial
 
 # Enable Cameras DT -3/2020
 camera:
@@ -73,6 +74,10 @@ notify:
   - name: HA_Twillio
     platform: twilio_sms
     from_number: +14805737302
+    
+spotify:
+  client_id: !secret spotify_id
+  client_secret: !secret spotify_secret
 
 binary_sensor:
   - platform: ping
@@ -99,12 +104,12 @@ binary_sensor:
     sensors:
       warm_inside:
         friendly_name: "Inside temperature higher than outside"
-        value_template: "{{ float(states('sensor.average_house_temp')) >= float(states('sensor.weatherbit_temperature')) }}"
+        value_template: "{{ float(states('sensor.average_house_temp')) >= float(states('sensor.wupws_temp')) }}"
   - platform: template
     sensors:
       cool_inside:
         friendly_name: "Inside temperature cooler than outside"
-        value_template: "{{ float(states('sensor.average_house_temp')) < float(states('sensor.weatherbit_temperature')) }}"
+        value_template: "{{ float(states('sensor.average_house_temp')) < float(states('sensor.wupws_temp')) }}"
 
 
     # Example configuration.yaml entry
@@ -183,10 +188,50 @@ sensor:
         arg: /
       - type: memory_use_percent
       - type: processor_use
-
+      
+# WeatherUnderground
+sensor:
+  - platform: wundergroundpws
+    api_key: !secret wunderground_PWS_API_key
+    pws_id: KAZFOUNT19
+    latitude: 33.6075
+    longitude: -111.7465
+    monitored_conditions:
+      - humidity
+      - temp
+      - dewpt
+      - heatIndex
+      - windChill
+      - precipRate
+      - precipTotal
+      - pressure
+      - windGust
+      - windSpeed
+      - weather_1d
+      - weather_1n
+      - weather_2d
+      - weather_2n
+      - weather_3d
+      - weather_3n
+      - weather_4d
+      - weather_4n
+      - weather_5d
+      - weather_5n
+      - temp_high_1d
+      - temp_low_1d
+      - wind_1d
+      - precip_1d
+      - precip_chance_1d
+      - winddir
+      - neighborhood
+      - obsTimeLocal
+      - stationID
+      - elev
+      - today_summary
+    
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 192.168.0.180
+    - !secret trusted_proxy
   ip_ban_enabled: true
   login_attempts_threshold: 5

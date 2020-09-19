@@ -8,7 +8,9 @@
     to: 'True'
   condition: []
   action:
-  - scene: scene.0f4bmmtdbgehxkp9
+  - data: {}
+    entity_id: scene.0f4bmmtdbgehxkp9
+    service: scene.turn_on
   mode: single
 - id: '1599182935537'
   alias: Kitchen Leak Sensor Wet
@@ -93,43 +95,35 @@
   description: ''
   trigger:
   - entity_id: binary_sensor.cool_inside
+    from: 'off'
     platform: state
+    to: 'on'
   condition:
-  - condition: device
-    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
-    domain: climate
-    entity_id: climate.bedroom_2
-    hvac_mode: 'off'
-    type: is_hvac_mode
-  - condition: device
-    device_id: 05df6b1ce2c843f38568ec74f8913155
-    domain: climate
-    entity_id: climate.south_bedrooms_2
-    hvac_mode: 'off'
-    type: is_hvac_mode
+  - after: sunrise
+    condition: sun
+  - condition: state
+    entity_id: binary_sensor.living_room
+    state: 'On'
   action:
   - data:
       message: Time to close the windows to keep the house cool.
-    service: persistent_notification.create
+    service: notify.notify
   - data:
       message: Time to close the windows to keep the house cool.
-    service: notify.notify
+    service: persistent_notification.create
   mode: single
 - id: '1599511189810'
   alias: Open Windows
   description: ''
   trigger:
   - entity_id: binary_sensor.warm_inside
+    from: 'off'
     platform: state
+    to: 'on'
   condition:
-  - condition: device
-    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
-    domain: climate
-    entity_id: climate.bedroom_2
-    hvac_mode: 'off'
-    type: is_hvac_mode
-  - after: '5:00:00'
-    before: '22:00:00'
+  - after: sunrise
+    condition: sun
+  - before: '22:00'
     condition: time
   action:
   - data:
@@ -138,4 +132,20 @@
   - data:
       message: Open the windows - it's cooler outside.
     service: notify.notify
+  mode: single
+- id: '1599954800487'
+  alias: Notify me if the door opens
+  description: ''
+  trigger:
+  - device_id: e8dbf5f4cb464beea9b0704c9dd38b76
+    domain: binary_sensor
+    entity_id: binary_sensor.entry_exit_doors
+    platform: device
+    type: opened
+  condition: []
+  action:
+  - device_id: e8dbf5f4cb464beea9b0704c9dd38b76
+    domain: switch
+    entity_id: switch.konnected_piezo_alarm
+    type: toggle
   mode: single
