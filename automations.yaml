@@ -101,9 +101,8 @@
   condition:
   - after: sunrise
     condition: sun
-  - condition: state
-    entity_id: binary_sensor.living_room
-    state: 'On'
+  - condition: template
+    value_template: "{{\n  is_state('binary_sensor.living_room', 'on')\n}}\n"
   action:
   - data:
       message: Time to close the windows to keep the house cool.
