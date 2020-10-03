@@ -92,6 +92,7 @@
   mode: single
 - id: '1599510701899'
   alias: Close windows
+  initial_state: true
   description: ''
   trigger:
   - entity_id: binary_sensor.cool_inside
@@ -102,7 +103,15 @@
   - condition: sun
     after: sunrise
   - condition: template
-    value_template: "{{is_state('binary_sensor.living_room', 'on')}}"
+#    value_template: "{{is_state('binary_sensor.living_room', 'on')}}"
+    value_template: >
+      {{
+        is_state('binary_sensor.dinning_room_door', 'on') or
+        is_state('binary_sensor.master_bedroom_door_and_window', 'on') or
+        is_state('binary_sensor.bedroom_window', 'on') or
+        is_state('binary_sensor.office_window', 'on') or
+        is_state('binary_sensor.living_room', 'on')
+      }}
   action:
   - data:
       message: Time to close the windows to keep the house cool.
@@ -110,9 +119,17 @@
   - data:
       message: Time to close the windows to keep the house cool.
     service: persistent_notification.create
+  - data:
+      message: Time to close the windows to keep the house cool.
+      target:
+        - '+18155292638'
+        - '+18155297819'
+        - '+18157012174'
+    service: notify.ha_twillio
   mode: single
 - id: '1599511189810'
   alias: Open Windows
+  initial_state: true
   description: ''
   trigger:
   - entity_id: binary_sensor.warm_inside
@@ -124,6 +141,8 @@
     condition: sun
   - before: '22:00'
     condition: time
+  - condition: template
+    value_template: "{{is_state('binary_sensor.living_room', 'off')}}"
   action:
   - data:
       message: Open the windows - it's cooler outside.
@@ -131,6 +150,13 @@
   - data:
       message: Open the windows - it's cooler outside.
     service: notify.notify
+  - data:
+      message: Time to close the windows to keep the house cool.
+      target:
+        - '+18155292638'
+        - '+18155297819'
+        - '+18157012174'
+    service: notify.ha_twillio
   mode: single
 - id: '1599954800487'
   alias: Notify me if the door opens
