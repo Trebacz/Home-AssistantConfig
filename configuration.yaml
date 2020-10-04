@@ -104,13 +104,14 @@ binary_sensor:
     sensors:
       warm_inside:
         friendly_name: "Inside temperature higher than outside"
-        value_template: "{{ float(states('sensor.average_house_temp')) >= float(states('sensor.wupws_temp')) }}"
+        value_template: >
+          {{ float(states('sensor.average_house_temp')) >= float(states('sensor.wupws_temp')) }}
   - platform: template
     sensors:
       cool_inside:
         friendly_name: "Inside temperature cooler than outside"
-        value_template: "{{ float(states('sensor.average_house_temp')) < float(states('sensor.wupws_temp')) }}"
-
+        value_template: >
+          {{ float(states('sensor.average_house_temp')) < float(states('sensor.wupws_temp')) }}
 
     # Example configuration.yaml entry
 sensor:
@@ -125,25 +126,35 @@ sensor:
         arg: /home
       - type: memory_free
       
+  - platform: min_max
+    name: average_house_temp
+    type: mean
+    entity_ids:
+      - sensor.master_bedroom_temperature
+      - sensor.southbedrooms_temperature
+      - sensor.water_leak_sensor_temperature_measurement
+      
   - platform: template
     sensors:
       # Gets temperature from Honeywell climate
       master_bedroom_temperature:
         friendly_name: Master Bedroom Temperature
         unit_of_measurement: '°F'
-        value_template: "{{ state_attr('climate.bedroom', 'current_temperature') }}"
+        value_template: >
+          {{ float(state_attr('climate.bedroom', 'current_temperature')) }}
       # Gets temperature from Honeywell climate
       southbedrooms_temperature:
         friendly_name: South Bedrooms Temperature
         unit_of_measurement: '°F'
-        value_template: "{{ state_attr('climate.south_bedrooms', 'current_temperature') }}"
+        value_template: >
+          {{ float(state_attr('climate.south_bedrooms', 'current_temperature')) }}
       # Calculates Average House Temperature
-      average_house_temp:
-        friendly_name: 'Average House Temp'
-        unit_of_measurement: "°F"
-        value_template: >-
-          {{ (float(states('sensor.master_bedroom_temperature')) + float(states('sensor.southbedrooms_temperature')) + float(states('sensor.water_leak_sensor_temperature_measurement'))) / 3 | round(2) }}
-
+#      average_house_temp:
+#        friendly_name: 'Average House Temp'
+#        unit_of_measurement: "°F"
+#        value_template: >
+#          {{ float(((float(states('sensor.master_bedroom_temperature')) + float(states('sensor.southbedrooms_temperature'))
+#          + float(states('sensor.water_leak_sensor_temperature_measurement'))) / 3) | round(1)) }}
 
 #==================
 #=== System Sensors
@@ -189,8 +200,7 @@ sensor:
       - type: memory_use_percent
       - type: processor_use
       
-# WeatherUnderground
-sensor:
+# WeatherUnderground sensors
   - platform: wundergroundpws
     api_key: !secret wunderground_PWS_API_key
     pws_id: KAZFOUNT19
