@@ -1,0 +1,9 @@
+windows:
+  name: All Windows
+  icon: mdi:window-open-variant
+  entities:
+    - binary_sensor.dinning_room_door
+    - binary_sensor.master_bedroom_door_and_window
+    - binary_sensor.bedroom_window
+    - binary_sensor.office_window
+    - binary_sensor.living_room
