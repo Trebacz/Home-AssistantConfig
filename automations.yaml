@@ -92,7 +92,6 @@
   mode: single
 - id: '1599510701899'
   alias: Close windows
-  initial_state: true
   description: ''
   trigger:
   - entity_id: binary_sensor.cool_inside
@@ -103,7 +102,6 @@
   - condition: sun
     after: sunrise
   - condition: template
-#    value_template: "{{is_state('binary_sensor.living_room', 'on')}}"
     value_template: >
       {{
         is_state('binary_sensor.dinning_room_door', 'on') or
@@ -112,6 +110,12 @@
         is_state('binary_sensor.office_window', 'on') or
         is_state('binary_sensor.living_room', 'on')
       }}
+  # Don't triger again until it's been 2 hours since last
+  - condition: template
+    value_template: "{{ as_timestamp(now()) - as_timestamp(states.automation.close_windows.attributes.last_triggered) | int > 7200 }}"
+  # Don't trigger right after restart - last triggered will be none during startup
+  - condition: template
+    value_template: "{{ states.automation.close_windows.attributes.last_triggered == none }}"
   action:
   - data:
       message: Time to close the windows to keep the house cool.
@@ -122,10 +126,11 @@
   - data:
       message: Time to close the windows to keep the house cool.
       target:
-        - '+18155292638'
-        - '+18155297819'
-        - '+18157012174'
+      - '+18155292638'
+      - '+18155297819'
+      - '+18157012174'
     service: notify.ha_twillio
+  initial_state: true
   mode: single
 - id: '1599511189810'
   alias: Open Windows
@@ -142,7 +147,7 @@
   - before: '22:00'
     condition: time
   - condition: template
-    value_template: "{{is_state('binary_sensor.living_room', 'off')}}"
+    value_template: '{{is_state(''binary_sensor.living_room'', ''off'')}}'
   action:
   - data:
       message: Open the windows - it's cooler outside.
@@ -153,9 +158,9 @@
   - data:
       message: Time to close the windows to keep the house cool.
       target:
-        - '+18155292638'
-        - '+18155297819'
-        - '+18157012174'
+      - '+18155292638'
+      - '+18155297819'
+      - '+18157012174'
     service: notify.ha_twillio
   mode: single
 - id: '1599954800487'
