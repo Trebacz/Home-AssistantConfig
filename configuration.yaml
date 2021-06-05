@@ -20,17 +20,31 @@ homeassistant:
     - type: totp
   unit_system: imperial
 
+mqtt:
+  broker: 192.168.0.216
+  port: 1883
+#  discovery: true
+#  discovery_prefix: homeassistant
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  
+# Enable mqtt logging
+logger:
+  default: warning
+  logs:
+    homeassistant.components.mqtt: debug
+  
 # Enable Cameras DT -3/2020
 camera:
-   - platform: generic
-     name: front
-     still_image_url: !secret Camera_URL
-     stream_source: !secret CameraFront_Source 
+#   - platform: generic
+#     name: front
+#     still_image_url: !secret Camera_URL
+#     stream_source: !secret CameraFront_Source 
 
-   - platform: generic
-     name: patio
-     still_image_url: !secret Camera_URL
-     stream_source: !secret CameraPatio_Source 
+#   - platform: generic
+#     name: patio
+#     still_image_url: !secret Camera_URL
+#     stream_source: !secret CameraPatio_Source 
 
    - platform: generic
      name: frontstreet
@@ -40,8 +54,18 @@ camera:
    - platform: generic
      name: fourpeaks
      still_image_url: !secret Camera_URL
-     stream_source: !secret CameraFourPeaks_Source 
-    
+     stream_source: !secret CameraFourPeaks_Source
+     
+   - platform: reolink_dev
+     host: !secret Camera_Front_Host
+     username: !secret Camera_User
+     password: !secret Camera_Password
+     name: frontdoor #(optional, default Reolink Camera)
+     stream: main #(optional, default main)
+     protocol: rtmp #(optional, default rtmp)
+     channel: 0 #(optional, default 0)
+     scan_interval: 5 #(optional, default 30s)
+     
 #Enable stream
 stream:
 
@@ -56,12 +80,26 @@ google_assistant:
 
 recorder:
   db_url: !secret recorder_db_url
+  commit_interval: 30
+  exclude:
+    domains:
+#      - automation
+      - updater
+    entity_globs:
+      - sensor.*_uptime* 
+      - sensor.uptime_*
+    entities:
+#      - sun.sun # Don't record sun data
+#      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
+      - sensor.date
+    event_types:
+#      - call_service # Don't record service calls
   
 influxdb:
-  host: a0d7b954-influxdb
+  host: !secret influxdb_host
   port: 8086
-  database: homeassistant
-  username: homeassistant
+  database: home_assistant
+  username: home-assistant
   password: !secret influxdb_password
   max_retries: 3
   default_measurement: state
@@ -105,13 +143,30 @@ binary_sensor:
       warm_inside:
         friendly_name: "Inside temperature higher than outside"
         value_template: >
-          {{ float(states('sensor.average_house_temp')) >= float(states('sensor.wupws_temp')) }}
+          {{ float(states('sensor.average_house_temp')) >= float(states('sensor.outside_temperature')) }}
   - platform: template
     sensors:
       cool_inside:
         friendly_name: "Inside temperature cooler than outside"
         value_template: >
-          {{ float(states('sensor.average_house_temp')) < float(states('sensor.wupws_temp')) }}
+          {{ float(states('sensor.average_house_temp')) < float(states('sensor.outside_temperature')) }}
+            platform: template
+  - platform: template
+    sensors:
+      motion_frontdoor:
+        friendly_name: Camera frontdoor
+        device_class: motion
+        value_template: "{{ is_state('camera.frontdoor', 'motion') }}"
+        delay_off: 
+          seconds: 30
+  - platform: mqtt
+    state_topic: "weather/txBatteryStatus"
+    name: "Replace Weather Station Battery"
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:battery"
+    payload_on: "1.0"
+    payload_off: "0.0"
+
 
     # Example configuration.yaml entry
 sensor:
@@ -133,7 +188,136 @@ sensor:
       - sensor.master_bedroom_temperature
       - sensor.southbedrooms_temperature
       - sensor.water_leak_sensor_temperature_measurement
-      
+# WeeWX MQTT Sensors
+  - platform: mqtt
+    state_topic: "weather/windSpeed_mph"
+    name: "Wind Speed"
+    unit_of_measurement: 'mph'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:weather-windy-variant"
+  - platform: mqtt
+    state_topic: "weather/windGust_mph"
+    name: "Wind Gust"
+    unit_of_measurement: 'mph'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:weather-windy"
+  - platform: mqtt
+    name: 'Outside Temperature  '
+#    state_topic: 'weather/loop'
+    state_topic: 'weather/outTemp_F'
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+#    value_template: "{{ value_json.outTemp_F | round(1) }}"
+    value_template: "{{ value | round(1) }}"
+    icon: mdi:thermometer
+  - platform: mqtt
+    state_topic: "weather/humidex_F"
+    name: "Humidex"
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:thermometer"
+  - platform: mqtt
+    state_topic: "weather/heatindex_F"
+    name: "Heat Index"
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:thermometer"
+  - platform: mqtt
+    state_topic: "weather/outHumidity"
+    name: "Outdoor Humidity"
+    unit_of_measurement: '%'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:water-percent"
+  - platform: mqtt
+    state_topic: "weather/barometer_inHg"
+    name: "Air Pressure"
+    unit_of_measurement: "inHg"
+    value_template: "{{ value | round(3) }}"
+    icon: "mdi:gauge"
+  - platform: mqtt
+    state_topic: "weather/windDir"
+    name: "Wind Direction"
+    unit_of_measurement: "degrees"
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:compass"
+  - platform: mqtt
+    state_topic: "weather/windGustDir"
+    name: "Wind Gust Direction"
+    unit_of_measurement: "degrees"
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:compass"
+  - platform: mqtt
+    state_topic: "weather/rainRate_inch_per_hour"
+    name: "Rain Rate"
+    unit_of_measurement: "in/hour"
+    value_template: "{{ value | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/rain_in"
+    name: "Rain"
+    unit_of_measurement: "in"
+    value_template: "{{ value | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/hourRain_in"
+    name: "Hour Rain"
+    unit_of_measurement: "in"
+    value_template: "{{ value | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/dayRain_in"
+    name: "Day Rain"
+    unit_of_measurement: "in"
+    value_template: "{{ value | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/rain24_in"
+    name: "24 Hour Rain"
+    unit_of_measurement: "in"
+    value_template: "{{ value | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/rain_total"
+    name: "Rain Total"
+    unit_of_measurement: "in"
+    value_template: "{{ value | multiply(0.3937) | round(4) }}"
+    icon: "mdi:weather-rainy"
+  - platform: mqtt
+    state_topic: "weather/dateTime"
+    name: "WeeWX Timestamp"
+    unit_of_measurement: "s"
+    value_template: "{{ value }}"
+  - platform: mqtt
+    state_topic: "weather/inTemp_F"
+    name: "Garage Temperature"
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:thermometer"
+  - platform: mqtt
+    state_topic: "weather/inHumidity"
+    name: "Garage Humidity"
+    unit_of_measurement: '%'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:water-percent"
+  - platform: mqtt
+    state_topic: "weather/inDewpoint_F"
+    name: "Garage Dewpoint"
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+    value_template: "{{ value | round(1) }}"
+    icon: "mdi:thermometer"
+  - platform: mqtt
+    state_topic: "weather/consBatteryVoltage_volt"
+    name: "Weather Station Battery"
+    unit_of_measurement: 'V'
+    device_class: 'battery'
+    value_template: "{{ value | round(2) }}"
+    icon: "mdi:battery"
+# WeeWX MQTT End of Sensors
+  
   - platform: template
     sensors:
       # Gets temperature from Honeywell climate
@@ -206,6 +390,7 @@ sensor:
     pws_id: KAZFOUNT19
     latitude: 33.6075
     longitude: -111.7465
+    numeric_precision: decimal
     monitored_conditions:
       - humidity
       - temp
@@ -242,6 +427,26 @@ sensor:
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - !secret trusted_proxy
+    - !secret trusted_proxy_NGINX
+#    - !secret trusted_proxy
   ip_ban_enabled: true
-  login_attempts_threshold: 5
+  login_attempts_threshold: 10
+
+# Switches definition
+switch:
+  - platform: template
+    switches:
+      misters:
+        friendly_name: "Misters"
+        unique_id: f4cfa21f5084
+        value_template: "{{ is_state('switch.41465054f4cfa21f5084_1', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.41465054f4cfa21f5084_1
+            entity_id: switch.41465054f4cfa21f5084_2
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.41465054f4cfa21f5084_1
+            entity_id: switch.41465054f4cfa21f5084_2
