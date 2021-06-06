@@ -318,6 +318,36 @@ sensor:
     icon: "mdi:battery"
 # WeeWX MQTT End of Sensors
   
+# Pool Thermometer MQTT Sensors
+  - platform: mqtt
+    state_topic: "pool-thermometer/pool_temp"
+    name: "Pool Temperature"
+    unit_of_measurement: '°F'
+    device_class: 'temperature'
+    value_template: "{{ value | round(1) }}"
+    icon: mdi:thermometer
+  - platform: mqtt
+    state_topic: "pool-thermometer/rssi"
+    name: "Pool Thermometer Signal Strength"
+    unit_of_measurement: 'db'
+    value_template: "{{ value | round(1) }}"
+#    icon: "mdi:weather-windy"
+  - platform: mqtt
+    state_topic: 'pool-thermometer/ps-voltage'
+    name: 'Pool Thermometer Battery'
+    unit_of_measurement: 'V'
+    device_class: 'battery'
+    value_template: "{{ value | round(2) }}"
+    icon: "mdi:battery"
+  - platform: mqtt
+    state_topic: "pool-thermometer/ps-soc"
+    name: "Pool Thermometer State of Charge"
+    unit_of_measurement: 'V'
+    device_class: 'battery'
+    value_template: "{{ value | round(2) }}"
+    icon: "mdi:battery"
+# Pool Thermometer MQTT End of Sensors
+
   - platform: template
     sensors:
       # Gets temperature from Honeywell climate
