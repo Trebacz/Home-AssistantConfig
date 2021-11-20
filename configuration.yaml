@@ -37,16 +37,6 @@ logger:
   
 # Enable Cameras DT -3/2020
 camera:
-#   - platform: generic
-#     name: front
-#     still_image_url: !secret Camera_URL
-#     stream_source: !secret CameraFront_Source 
-
-#   - platform: generic
-#     name: patio
-#     still_image_url: !secret Camera_URL
-#     stream_source: !secret CameraPatio_Source 
-
    - platform: generic
      name: frontstreet
      still_image_url: !secret Camera_URL
@@ -194,11 +184,9 @@ sensor:
     icon: "mdi:weather-windy"
   - platform: mqtt
     name: 'Outside Temperature  '
-#    state_topic: 'weather/loop'
     state_topic: 'weather/outTemp_F'
     unit_of_measurement: '°F'
     device_class: 'temperature'
-#    value_template: "{{ value_json.outTemp_F | round(1) }}"
     value_template: "{{ value | round(1) }}"
     icon: mdi:thermometer
   - platform: mqtt
@@ -360,13 +348,6 @@ sensor:
         unit_of_measurement: '°F'
         value_template: >
           {{ float(state_attr('climate.south_bedrooms', 'current_temperature')) }}
-      # Calculates Average House Temperature
-#      average_house_temp:
-#        friendly_name: 'Average House Temp'
-#        unit_of_measurement: "°F"
-#        value_template: >
-#          {{ float(((float(states('sensor.master_bedroom_temperature')) + float(states('sensor.southbedrooms_temperature'))
-#          + float(states('sensor.water_leak_sensor_temperature_measurement'))) / 3) | round(1)) }}
 
 # Mail Summary Sensors
   - platform: template
@@ -529,7 +510,6 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - !secret trusted_proxy_NGINX
-#    - !secret trusted_proxy
   ip_ban_enabled: true
   login_attempts_threshold: 10
 
@@ -551,4 +531,3 @@ switch:
           target:
             entity_id: switch.41465054f4cfa21f5084_1
             entity_id: switch.41465054f4cfa21f5084_2
-
