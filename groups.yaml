@@ -1,9 +1,22 @@
 windows:
   name: All Windows
+  all: true
   icon: mdi:window-open-variant
   entities:
-    - binary_sensor.dinning_room_door
     - binary_sensor.master_bedroom_door_and_window
     - binary_sensor.bedroom_window
     - binary_sensor.office_window
     - binary_sensor.living_room
+
+doors:
+  name: All Doors
+  all: true
+  icon: mdi:door
+  entities:
+    - binary_sensor.entry_exit_doors
+    - binary_sensor.kitchen_door_contact
+    - binary_sensor.double_garage_door_contact
+    - binary_sensor.single_garage_door_contact
+    - binary_sensor.living_room
+    - binary_sensor.master_bedroom_door_and_window
+    - binary_sensor.pool_bathroom_contact

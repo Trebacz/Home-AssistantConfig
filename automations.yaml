@@ -175,3 +175,72 @@
     entity_id: switch.konnected_piezo_alarm
     type: toggle
   mode: single
+- id: '1630190606849'
+  alias: Tablet Outlet - On-Off
+  description: Tablet Outlet - On-Off schedule with state persistence
+  use_blueprint:
+    path: EPMatt/on_off_schedule_state_persistence.yaml
+    input:
+      off_time: '22:00:00'
+      on_time: '5:00:00'
+      automation_target:
+        device_id: 1172a94fe757637e68fd1370cd66f956
+- id: '1630190917215'
+  alias: Low battery level detection & notification for all battery sensors
+  description: ''
+  use_blueprint:
+    path: sbyx/low-battery-level-detection-notification-for-all-battery-sensors.yaml
+    input:
+      actions:
+      - service: notify.persistent_notification
+        data:
+          message: '{{sensors}} battery is low.'
+- id: '1636235518164'
+  alias: Patio Outlet - Toggle
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: fa5c6864b903aa221bab51b9a6d50cb9
+    type: action
+    subtype: single
+    discovery_id: 0x00158d0006fbadb8 action_single
+  condition: []
+  action:
+  - type: toggle
+    device_id: 91e0e8ef4d1bb7304ca42282a613b7b9
+    entity_id: switch.patio_outlet
+    domain: switch
+  mode: single
+- id: '1636318358363'
+  alias: Misters Outlet - Toggle
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: feacb8f4e4907f70db0cc4e7b3e3e6aa
+    type: action
+    subtype: single
+    discovery_id: 0x00158d0006f3a455 action_single
+  condition: []
+  action:
+  - type: toggle
+    device_id: a0179854428aa5bc736656e48848be32
+    entity_id: switch.patio_mister_outlet
+    domain: switch
+  mode: single
+- id: '1636608738706'
+  alias: Overnight Outlets Off-On
+  description: ''
+  use_blueprint:
+    path: EPMatt/on_off_schedule_state_persistence.yaml
+    input:
+      off_time: '23:30:00'
+      on_time: 09:00:00
+      automation_target:
+        device_id:
+        - bcb86309d2fa3856e42ccc4e023c0901
+        - 91e0e8ef4d1bb7304ca42282a613b7b9
+        - c78075d1bfd6a491cb01eccd7c7d05ac
+        - de3fee10eb91b4c209f2d4f0bdccb6c3
+      trigger_at_homeassistant_startup: true

@@ -23,8 +23,9 @@ homeassistant:
 mqtt:
   broker: 192.168.0.216
   port: 1883
-#  discovery: true
-#  discovery_prefix: homeassistant
+  discovery: true
+  discovery_prefix: homeassistant
+#  discovery_prefix: zigbee2mqtt/bridge
   username: !secret mqtt_username
   password: !secret mqtt_password
   
@@ -56,24 +57,8 @@ camera:
      still_image_url: !secret Camera_URL
      stream_source: !secret CameraFourPeaks_Source
      
-   - platform: reolink_dev
-     host: !secret Camera_Front_Host
-     username: !secret Camera_User
-     password: !secret Camera_Password
-     name: frontdoor #(optional, default Reolink Camera)
-     stream: main #(optional, default main)
-     protocol: rtmp #(optional, default rtmp)
-     channel: 0 #(optional, default 0)
-     scan_interval: 5 #(optional, default 30s)
-     
 #Enable stream
 stream:
-
-climate:
-# DT 3/2020 added entry for thermostat
-  - platform: honeywell
-    username: !secret honeywell_username
-    password: !secret honeywell_password
 
 google_assistant:
   project_id: home-assistant-d67c1
@@ -118,6 +103,10 @@ notify:
 spotify:
   client_id: !secret spotify_id
   client_secret: !secret spotify_secret
+
+spotcast:
+  sp_dc: !secret sp_dc
+  sp_key: !secret sp_key
 
 binary_sensor:
   - platform: ping
@@ -315,9 +304,9 @@ sensor:
     state_topic: "weather/consBatteryVoltage_volt"
     name: "Weather Station Battery"
     unit_of_measurement: 'V'
-    device_class: 'battery'
+    device_class: 'voltage'
     value_template: "{{ value | round(2) }}"
-    icon: "mdi:battery"
+    icon: "mdi:lightning-bolt"
 # WeeWX MQTT End of Sensors
   
 # Pool Thermometer MQTT Sensors
@@ -326,7 +315,14 @@ sensor:
     name: "Pool Temperature"
     unit_of_measurement: '°F'
     device_class: 'temperature'
+    # float is to adjust temperature sensor to real pool temperature
     value_template: "{{ value | round(1) }}"
+#    value_template: >
+#      {
+#      {% if states('sensor.pool_temperature') | float > 0 %}
+#      { (states('sensor.pool_temperature') | float + 14.9) | round(1) }
+#      {% endif %}
+#      }
     icon: mdi:thermometer
   - platform: mqtt
     state_topic: "pool-thermometer/rssi"
@@ -338,15 +334,15 @@ sensor:
     state_topic: 'pool-thermometer/ps-voltage'
     name: 'Pool Thermometer Battery'
     unit_of_measurement: 'V'
-    device_class: 'battery'
+    device_class: 'voltage'
     value_template: "{{ value | round(2) }}"
-    icon: "mdi:battery"
+    icon: "mdi:lightning-bolt"
   - platform: mqtt
     state_topic: "pool-thermometer/ps-soc"
     name: "Pool Thermometer State of Charge"
-    unit_of_measurement: 'V'
+    unit_of_measurement: '%'
     device_class: 'battery'
-    value_template: "{{ value | round(2) }}"
+    value_template: "{{ value | round(1) }}"
     icon: "mdi:battery"
 # Pool Thermometer MQTT End of Sensors
 
@@ -372,6 +368,78 @@ sensor:
 #          {{ float(((float(states('sensor.master_bedroom_temperature')) + float(states('sensor.southbedrooms_temperature'))
 #          + float(states('sensor.water_leak_sensor_temperature_measurement'))) / 3) | round(1)) }}
 
+# Mail Summary Sensors
+  - platform: template
+    sensors:
+      mail_deliveries_message:
+        friendly_name: "Deliveries Summary"
+        value_template: > 
+          {# Deliveries Sentence #}
+            {% macro deliveries_sentence() -%}
+                  {%- if states("sensor.mail_usps_mail")|int == 0 -%}
+                    No
+                  {%- else -%}
+                    {{states("sensor.mail_usps_mail")|int}}
+                  {%- endif -%}
+                {{' '}} 
+                  {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
+                    pieces of mail
+                  {%- else -%}
+                    pieces of mail
+                  {%- endif -%}
+                {{' '}}will be delivered.{{' '}} 
+                  {%- if states("sensor.mail_usps_delivering")|int == 0 -%}
+                    No
+                  {%- else -%}
+                    {{states("sensor.mail_usps_delivering")|int}}
+                  {%- endif -%}
+                {{' '}} 
+                  {%- if states("sensor.mail_usps_delivering")|int == 1 -%}
+                    USPS package is
+                  {%- else -%}
+                    USPS packages are
+                  {%- endif -%}
+                {{' '}}in transit.{{' '}}
+                  {%- if states("sensor.mail_fedex_delivering")|int == 0 -%}
+                    No
+                  {%- else -%}
+                    {{states("sensor.mail_fedex_delivering")|int}}
+                  {%- endif -%}
+                {{' '}} 
+                  {%- if states("sensor.mail_fedex_delivering")|int == 1 -%}
+                    FedEx package is
+                  {%- else -%}
+                    Fedex packages are
+                  {%- endif -%}
+                {{' '}}in transit.{{' '}}
+                {%- if states("sensor.mail_ups_delivering")|int == 0 -%}
+                    No
+                  {%- else -%}
+                    {{states("sensor.mail_ups_delivering")|int}}
+                  {%- endif -%}
+                {{' '}} 
+                  {%- if states("sensor.mail_ups_delivering")|int == 1 -%}
+                    UPS package is
+                  {%- else -%}
+                    UPS packages are
+                  {%- endif -%}
+                {{' '}}in transit.{{' '}}
+                {%- if states("sensor.mail_amazon_packages")|int == 0 -%}
+                    No
+                  {%- else -%}
+                    {{states("sensor.mail_amazon_packages")|int}}
+                  {%- endif -%}
+                {{' '}} 
+                  {%- if states("sensor.mail_amazon_packages")|int == 1 -%}
+                    Amazon package is
+                  {%- else -%}
+                    Amazon packages are
+                  {%- endif -%}
+                {{' '}}in transit.{{' '}}
+            {%- endmacro %}
+          {{deliveries_sentence()}}
+# Mail Summary End of Sesnsors 
+
 #==================
 #=== System Sensors
 #==================
@@ -380,6 +448,7 @@ sensor:
     name: RPi CPU Temperature
     command: "cat /sys/class/thermal/thermal_zone0/temp"
     value_template: "{{ value | multiply(0.001) | round(2) }}"
+    unit_of_measurement: "°C"
 
   #===========================================
   #=== Latest Tasmota firmware version
@@ -482,3 +551,4 @@ switch:
           target:
             entity_id: switch.41465054f4cfa21f5084_1
             entity_id: switch.41465054f4cfa21f5084_2
+
