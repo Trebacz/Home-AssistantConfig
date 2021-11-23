@@ -1,6 +1,6 @@
 windows:
   name: All Windows
-  all: true
+  all: false
   icon: mdi:window-open-variant
   entities:
     - binary_sensor.master_bedroom_door_and_window
@@ -10,7 +10,7 @@ windows:
 
 doors:
   name: All Doors
-  all: true
+  all: false
   icon: mdi:door
   entities:
     - binary_sensor.entry_exit_doors
