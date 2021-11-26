@@ -517,6 +517,17 @@ sensor:
     json_attributes_topic: zigbee2mqtt/bridge/response/networkmap
     json_attributes_template: "{{ value_json.data.value | tojson }}"
 
+lovelace:
+  mode: yaml
+  resources:
+#    - url: /local/zigbee2mqtt-networkmap.js?v=0.7.0
+#      type: module
+#    resources:
+  # Note: the `community_plugin` root and `type` is `module`. Also, no `?v=` query string as HACS
+  #   will make sure that the most recent version is always loaded.
+  - url: /hacsfiles/zigbee2mqtt-networkmap/zigbee2mqtt-networkmap.js
+    type: module
+
 http:
   use_x_forwarded_for: true
   trusted_proxies:
