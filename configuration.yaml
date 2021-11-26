@@ -528,6 +528,11 @@ lovelace:
   - url: /hacsfiles/zigbee2mqtt-networkmap/zigbee2mqtt-networkmap.js
     type: module
 
+panel_iframe:
+  zigbee2mqtt:
+    title: "Zigbee2mqtt"
+    url: "https://zigbee2mqtt.trebacz.com/"    
+    
 http:
   use_x_forwarded_for: true
   trusted_proxies:
