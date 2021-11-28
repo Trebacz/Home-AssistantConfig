@@ -150,14 +150,13 @@ binary_sensor:
   - platform: template
     sensors:
       all_windows:
-        friendly_name: "all Windows"
+        friendly_name: "All Windows"
         value_template: >-
           {{ is_state('binary_sensor.master_bedroom_sliding_door_and_window', 'on') or
              is_state('binary_sensor.south_bedroom_window', 'on') or
              is_state('binary_sensor.office_window', 'on') or
              is_state('binary_sensor.living_room_slider', 'on') }}
         device_class: window
-        icon: mdi:window-open-variant
   - platform: template
     sensors:
       all_doors:
@@ -172,7 +171,6 @@ binary_sensor:
              is_state('binary_sensor.master_bedroom_sliding_door_and_window', 'on') or
              is_state('binary_sensor.pool_bathroom_contact', 'on') }}
         device_class: door
-        icon: mdi:door
 
 
     # Example configuration.yaml entry
