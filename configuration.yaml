@@ -553,7 +553,7 @@ cover:
     payload_available: "true"
     payload_not_available: "false"
     device_class: garage
-    unique_id: "shelly1-E8DB84D6C1D8"
+    unique_id: shelly1-E8DB84D6C1D8
     
 http:
   use_x_forwarded_for: true
