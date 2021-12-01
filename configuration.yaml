@@ -538,6 +538,23 @@ panel_iframe:
     icon: mdi:lan
     require_admin: true
     
+cover:
+  - platform: mqtt
+    name: "Garage Door"
+    state_topic: "home-assistant/garage/state"
+    command_topic: "shellies/shelly1-E8DB84D6C1D8/relay/0/command"
+    availability_topic: "shellies/shelly1-E8DB84D6C1D8/online"
+    retain: false
+    payload_open: "on"
+    payload_close: "on"
+    payload_stop: "on"
+    state_open: "open"
+    state_closed: "closed"
+    payload_available: "true"
+    payload_not_available: "false"
+    device_class: garage
+    unique_id: shelly1-E8DB84D6C1D8
+    
 http:
   use_x_forwarded_for: true
   trusted_proxies:
