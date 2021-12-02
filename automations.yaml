@@ -52,7 +52,7 @@
   trigger:
   - device_id: 81603e0c094d4158b29605ed1a7396c8
     domain: binary_sensor
-    entity_id: binary_sensor.kitchen_leak_sensorg_water
+    entity_id: binary_sensor.kitchen_leak_sensor_water
     platform: device
     type: moist
   condition: []
