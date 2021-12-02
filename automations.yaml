@@ -18,7 +18,7 @@
   trigger:
   - device_id: 81603e0c094d4158b29605ed1a7396c8
     domain: binary_sensor
-    entity_id: binary_sensor.water_leak_sensor_water
+    entity_id: binary_sensor.kitchen_leak_sensor_water
     platform: device
     type: moist
   condition: []
@@ -37,7 +37,7 @@
   - below: 25
     device_id: 81603e0c094d4158b29605ed1a7396c8
     domain: sensor
-    entity_id: sensor.water_leak_sensor_battery
+    entity_id: sensor.kitchen_leak_sensor_battery
     platform: device
     type: battery_level
   condition: []
@@ -52,7 +52,7 @@
   trigger:
   - device_id: 81603e0c094d4158b29605ed1a7396c8
     domain: binary_sensor
-    entity_id: binary_sensor.water_leak_sensor_water
+    entity_id: binary_sensor.kitchen_leak_sensor_water
     platform: device
     type: moist
   condition: []
