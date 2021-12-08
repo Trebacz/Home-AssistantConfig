@@ -155,6 +155,7 @@ binary_sensor:
           {{ is_state('binary_sensor.master_bedroom_sliding_door_and_window', 'on') or
              is_state('binary_sensor.south_bedroom_window', 'on') or
              is_state('binary_sensor.office_window', 'on') or
+             is_state('binary_sensor.dining_room_window', 'on') or
              is_state('binary_sensor.living_room_slider', 'on') }}
         device_class: window
   - platform: template

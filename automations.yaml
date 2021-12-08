@@ -175,16 +175,6 @@
     entity_id: switch.konnected_piezo_alarm
     type: toggle
   mode: single
-- id: '1630190606849'
-  alias: Tablet Outlet - On-Off
-  description: Tablet Outlet - On-Off schedule with state persistence
-  use_blueprint:
-    path: EPMatt/on_off_schedule_state_persistence.yaml
-    input:
-      off_time: '22:00:00'
-      on_time: '5:00:00'
-      automation_target:
-        device_id: 1172a94fe757637e68fd1370cd66f956
 - id: '1630190917215'
   alias: Low battery level detection & notification for all battery sensors
   description: ''
@@ -245,17 +235,17 @@
         - de3fee10eb91b4c209f2d4f0bdccb6c3
       trigger_at_homeassistant_startup: true
 - id: mqtt_garage_door_status
-  alias: 'MQTT Garage Door Status'
+  alias: MQTT Garage Door Status
   trigger:
     platform: state
     entity_id: binary_sensor.double_garage_door_contact
   action:
   - service: mqtt.publish
     data_template:
-      topic: 'home-assistant/garage/state'
-      payload_template: "{{ 'open' if states.binary_sensor.double_garage_door_contact.state =='on' else 'closed' }}"
+      topic: homeassistant/garage/state
+      payload_template: '{{ ''open'' if states.binary_sensor.double_garage_door_contact.state
+        ==''on'' else ''closed'' }}'
       retain: true
-      
 - id: mqtt_shelly_announce
   alias: Shelly Sync at HA Start
   trigger:
@@ -267,4 +257,3 @@
     data:
       topic: shellies/command
       payload: announce
-
