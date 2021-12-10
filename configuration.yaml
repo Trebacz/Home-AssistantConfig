@@ -542,7 +542,7 @@ panel_iframe:
 cover:
   - platform: mqtt
     name: "Garage Door"
-    state_topic: "home-assistant/garage/state"
+    state_topic: "homeassistant/garage/state"
     command_topic: "shellies/shelly1-E8DB84D6C1D8/relay/0/command"
     availability_topic: "shellies/shelly1-E8DB84D6C1D8/online"
     retain: false
