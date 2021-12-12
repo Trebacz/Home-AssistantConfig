@@ -257,3 +257,22 @@
     data:
       topic: shellies/command
       payload: announce
+- id: b8aa033f-800f-4d26-8f99-f533d705421f
+  alias: "[📣] Notify when garage door was left open for too long"
+  trigger:
+    platform: state
+    entity_id: cover.garage_door
+    to: open
+    for:
+      minutes: 5
+  action:
+  - service: notify.notify
+    data:
+      title: "🚙 Garage left open!"
+      message: "Garage door has been open for 5 minutes. Close it?"
+  - service: notify.ha_twillio
+    data:
+      message: "Garage door has been open for 5 minutes. Close it?"
+      target:
+      - '+18155292638'
+      - '+18155297819'
