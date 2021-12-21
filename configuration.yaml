@@ -55,6 +55,7 @@ google_assistant:
   project_id: home-assistant-d67c1
   service_account: !include SERVICE-ACCOUNT.json
   report_state: true
+  secure_devices_pin: "9164"
 
 recorder:
   db_url: !secret recorder_db_url
@@ -539,7 +540,7 @@ panel_iframe:
     url: "https://zigbee2mqtt.trebacz.com/"
     icon: mdi:lan
     require_admin: true
-    
+
 cover:
   - platform: mqtt
     name: "Garage Door"
@@ -554,9 +555,10 @@ cover:
     state_closed: "closed"
     payload_available: "true"
     payload_not_available: "false"
-    device_class: garage
+    device_class: "garage"
     unique_id: "shelly1-E8DB84D6C1D8"
-    
+    #optimistic: true
+
 http:
   use_x_forwarded_for: true
   trusted_proxies:
