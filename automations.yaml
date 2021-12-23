@@ -1,17 +1,3 @@
-- id: '1598726114260'
-  alias: Garage Door Close if Open
-  description: ''
-  trigger:
-  - entity_id: scene.gdlnta2yonphwyhh
-    for: 0:05:00
-    platform: state
-    to: 'True'
-  condition: []
-  action:
-  - data: {}
-    entity_id: scene.0f4bmmtdbgehxkp9
-    service: scene.turn_on
-  mode: single
 - id: '1599182935537'
   alias: Kitchen Leak Sensor Wet
   description: ''
@@ -29,22 +15,6 @@
   - data:
       message: Kitchen leak sesor is wet
     service: notify.notify
-  mode: single
-- id: '1599183199313'
-  alias: Leak Sensor Battery
-  description: ''
-  trigger:
-  - below: 25
-    device_id: 81603e0c094d4158b29605ed1a7396c8
-    domain: sensor
-    entity_id: sensor.kitchen_leak_sensor_battery
-    platform: device
-    type: battery_level
-  condition: []
-  action:
-  - data:
-      message: Leak Sensor Battery Low
-    service: persistent_notification.create
   mode: single
 - id: '1599415392223'
   alias: Leak Sensor SMS
@@ -163,11 +133,36 @@
   alias: Notify me if the door opens
   description: ''
   trigger:
-  - device_id: e8dbf5f4cb464beea9b0704c9dd38b76
-    domain: binary_sensor
-    entity_id: binary_sensor.entry_exit_doors
+  - type: opened
     platform: device
-    type: opened
+    device_id: e8dbf5f4cb464beea9b0704c9dd38b76
+    entity_id: binary_sensor.entry_and_exit_doors
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: 52da387cc64bba0f27edf604e2fa754b
+    entity_id: binary_sensor.kitchen_door_contact
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: 6053c3591b855fa8b50ac0c2da1a3ea8
+    entity_id: binary_sensor.double_garage_door_contact
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: 5a414d40d78736993ccf16c5e02c03bf
+    entity_id: binary_sensor.single_garage_door_contact
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: e8dbf5f4cb464beea9b0704c9dd38b76
+    entity_id: binary_sensor.living_room_slider
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: e8dbf5f4cb464beea9b0704c9dd38b76
+    entity_id: binary_sensor.master_bedroom_sliding_door_and_window
+    domain: binary_sensor
   condition: []
   action:
   - device_id: e8dbf5f4cb464beea9b0704c9dd38b76
@@ -258,7 +253,7 @@
       topic: shellies/command
       payload: announce
 - id: b8aa033f-800f-4d26-8f99-f533d705421f
-  alias: "[📣] Notify when garage door was left open for too long"
+  alias: '[📣] Notify when garage door was left open for too long'
   trigger:
     platform: state
     entity_id: cover.garage_door
@@ -268,11 +263,11 @@
   action:
   - service: notify.notify
     data:
-      title: "🚙 Garage left open!"
-      message: "Garage door has been open for 5 minutes. Close it?"
+      title: 🚙 Garage left open!
+      message: Garage door has been open for 5 minutes. Close it?
   - service: notify.ha_twillio
     data:
-      message: "Garage door has been open for 5 minutes. Close it?"
+      message: Garage door has been open for 5 minutes. Close it?
       target:
       - '+18155292638'
       - '+18155297819'
