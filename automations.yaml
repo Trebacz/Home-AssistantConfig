@@ -228,6 +228,7 @@
         - 91e0e8ef4d1bb7304ca42282a613b7b9
         - c78075d1bfd6a491cb01eccd7c7d05ac
         - de3fee10eb91b4c209f2d4f0bdccb6c3
+        - 0039dd29816412a7480c21bf96b2311c
       trigger_at_homeassistant_startup: true
 - id: mqtt_garage_door_status
   alias: MQTT Garage Door Status
@@ -255,19 +256,27 @@
 - id: b8aa033f-800f-4d26-8f99-f533d705421f
   alias: '[📣] Notify when garage door was left open for too long'
   trigger:
-    platform: state
+  - platform: state
     entity_id: cover.garage_door
     to: open
     for:
-      minutes: 5
+      hours: 0
+      minutes: 10
+      seconds: 0
   action:
   - service: notify.notify
     data:
       title: 🚙 Garage left open!
-      message: Garage door has been open for 5 minutes. Close it?
+      message: Garage door has been open for 10 minutes. Close it?
+  - service: tts.google_translate_say
+    data:
+      message: Garage door has been open for 10 minutes.
+      entity_id: media_player.indoor_speakers
   - service: notify.ha_twillio
     data:
-      message: Garage door has been open for 5 minutes. Close it?
+      message: Garage door has been open for 10 minutes. Close it?
       target:
       - '+18155292638'
       - '+18155297819'
+  mode: queued
+  max: 10

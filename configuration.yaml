@@ -415,7 +415,7 @@ sensor:
           {% endif %}
         unit_of_measurement: "bit"
       purpleair_description:
-        unique_id: 'purpleair_SENSORID_description'
+#        unique_id: 'purpleair_SENSORID_description'
         friendly_name: 'PurpleAir AQI Description'
         value_template: >
           {% if (states('sensor.purpleair_aqi')|float) >= 401.0 %}
@@ -437,25 +437,25 @@ sensor:
           {% endif %}
         entity_id: sensor.purpleair
       purpleair_pm25:
-        unique_id: 'purpleair_SENSORID_pm25'
+#        unique_id: 'purpleair_SENSORID_pm25'
         friendly_name: 'PurpleAir PM 2.5'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['PM2_5Value'] }}"
         unit_of_measurement: "μg/m3"
         entity_id: sensor.purpleair
       purpleair_temp:
-        unique_id: 'purpleair_SENSORID_temperature'
+#        unique_id: 'purpleair_SENSORID_temperature'
         friendly_name: 'PurpleAir Temperature'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['temp_f'] }}"
         unit_of_measurement: "°F"
         entity_id: sensor.purpleair
       purpleair_humidity:
-        unique_id: 'purpleair_SENSORID_humidity'
+#        unique_id: 'purpleair_SENSORID_humidity'
         friendly_name: 'PurpleAir Humidity'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['humidity'] }}"
         unit_of_measurement: "%"
         entity_id: sensor.purpleair
       purpleair_pressure:
-        unique_id: 'purpleair_SENSORID_pressure'
+#        unique_id: 'purpleair_SENSORID_pressure'
         friendly_name: 'PurpleAir Pressure'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['pressure'] }}"
         unit_of_measurement: "hPa"
@@ -553,40 +553,6 @@ sensor:
 #==================
 #=== System Sensors
 #==================
-
-  - platform: command_line
-    name: RPi CPU Temperature
-    command: "cat /sys/class/thermal/thermal_zone0/temp"
-    value_template: "{{ value | multiply(0.001) | round(2) }}"
-    unit_of_measurement: "°C"
-
-  #===========================================
-  #=== Latest Tasmota firmware version
-  #===========================================
-  - platform: command_line
-    name: Tasmota Current Version
-    command: "curl -s https://github.com/arendst/Tasmota/releases/latest | cut -d'\"' -f2 | rev | cut -d'/' -f1 | rev"
-    scan_interval: 86400
-
-  #==============================
-  #=== Installed hass.io version
-  #==============================
-  - platform: version
-    name: Installed Version
-    source: local
-
-  #================================
-  #=== Latest Available HA Version
-  #================================
-  - platform: version
-    name: Latest Available Version
-    beta: false
-    image: raspberrypi4
-    source: hassio
-
-  #=============================================
-  #=== Last boot time, Disk, memory & CPU usage
-  #=============================================
   - platform: systemmonitor
     resources:
       - type: last_boot
@@ -594,6 +560,7 @@ sensor:
         arg: /
       - type: memory_use_percent
       - type: processor_use
+      - type: processor_temperature
       
 # WeatherUnderground sensors
   - platform: wundergroundpws
@@ -629,7 +596,6 @@ sensor:
       - precip_1d
       - precip_chance_1d
       - winddir
-      - neighborhood
       - obsTimeLocal
       - stationID
       - elev
