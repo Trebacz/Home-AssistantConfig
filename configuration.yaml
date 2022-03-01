@@ -34,7 +34,8 @@ mqtt:
 logger:
   default: warning
   logs:
-    homeassistant.components.mqtt: debug
+#    homeassistant.components.mqtt: debug
+    homeassistant.components.mqtt: warning
   
 # Enable Cameras DT -3/2020
 camera:
@@ -126,13 +127,13 @@ binary_sensor:
       warm_inside:
         friendly_name: "Inside temperature higher than outside"
         value_template: >
-          {{ float(states('sensor.average_house_temp')) >= float(states('sensor.outside_temperature')) }}
+          {{ states('sensor.average_house_temp') | float(0) >= states('sensor.outside_temperature') | float(0)}}
   - platform: template
     sensors:
       cool_inside:
         friendly_name: "Inside temperature cooler than outside"
         value_template: >
-          {{ float(states('sensor.average_house_temp')) < float(states('sensor.outside_temperature')) }}
+          {{ states('sensor.average_house_temp') | float(0) < states('sensor.outside_temperature') | float(0)}}
             platform: template
   - platform: template
     sensors:
@@ -183,12 +184,6 @@ sensor:
     id: !secret untapped_id
     secret: !secret untapped_secret
     
-  - platform: systemmonitor
-    resources:
-      - type: disk_use_percent
-        arg: /home
-      - type: memory_free
-      
   - platform: min_max
     name: average_house_temp
     type: mean
@@ -392,75 +387,75 @@ sensor:
         friendly_name: 'PurpleAir PM2.5 AQI'
         value_template: >
           {% macro calcAQI(Cp, Ih, Il, BPh, BPl) -%}
-            {{ (((Ih - Il)/(BPh - BPl)) * (Cp - BPl) + Il)|round|float }}
+            {{ (((Ih - Il)/(BPh - BPl)) * (Cp - BPl) + Il)|round|float(0) }}
           {%- endmacro %}
-          {% if (states('sensor.purpleair_pm25')|float) > 1000 %}
+          {% if (states('sensor.purpleair_pm25')|float(0)) > 1000 %}
             invalid
-          {% elif (states('sensor.purpleair_pm25')|float) > 350.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 500.0, 401.0, 500.0, 350.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float) > 250.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 400.0, 301.0, 350.4, 250.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float) > 150.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 300.0, 201.0, 250.4, 150.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float) > 55.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 200.0, 151.0, 150.4, 55.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float) > 35.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 150.0, 101.0, 55.4, 35.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float) > 12.1 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 100.0, 51.0, 35.4, 12.1) }}
-          {% elif (states('sensor.purpleair_pm25')|float) >= 0.0 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float), 50.0, 0.0, 12.0, 0.0) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 350.5 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 500.0, 401.0, 500.0, 350.5) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 250.5 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 400.0, 301.0, 350.4, 250.5) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 150.5 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 300.0, 201.0, 250.4, 150.5) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 55.5 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 200.0, 151.0, 150.4, 55.5) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 35.5 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 150.0, 101.0, 55.4, 35.5) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) > 12.1 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 100.0, 51.0, 35.4, 12.1) }}
+          {% elif (states('sensor.purpleair_pm25')|float(0)) >= 0.0 %}
+            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 50.0, 0.0, 12.0, 0.0) }}
           {% else %}
             invalid
           {% endif %}
         unit_of_measurement: "bit"
       purpleair_description:
-#        unique_id: 'purpleair_SENSORID_description'
+        unique_id: 'purpleair_SENSORID_description'
         friendly_name: 'PurpleAir AQI Description'
         value_template: >
-          {% if (states('sensor.purpleair_aqi')|float) >= 401.0 %}
+          {% if (states('sensor.purpleair_aqi')|float(0)) >= 401.0 %}
             Hazardous
-          {% elif (states('sensor.purpleair_aqi')|float) >= 301.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 301.0 %}
             Hazardous
-          {% elif (states('sensor.purpleair_aqi')|float) >= 201.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 201.0 %}
             Very Unhealthy
-          {% elif (states('sensor.purpleair_aqi')|float) >= 151.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 151.0 %}
             Unhealthy
-          {% elif (states('sensor.purpleair_aqi')|float) >= 101.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 101.0 %}
             Unhealthy for Sensitive Groups
-          {% elif (states('sensor.purpleair_aqi')|float) >= 51.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 51.0 %}
             Moderate
-          {% elif (states('sensor.purpleair_aqi')|float) >= 0.0 %}
+          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 0.0 %}
             Good
           {% else %}
             undefined
           {% endif %}
         entity_id: sensor.purpleair
       purpleair_pm25:
-#        unique_id: 'purpleair_SENSORID_pm25'
+        unique_id: 'purpleair_SENSORID_pm25'
         friendly_name: 'PurpleAir PM 2.5'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['PM2_5Value'] }}"
         unit_of_measurement: "μg/m3"
         entity_id: sensor.purpleair
       purpleair_temp:
-#        unique_id: 'purpleair_SENSORID_temperature'
+        unique_id: 'purpleair_SENSORID_temperature'
         friendly_name: 'PurpleAir Temperature'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['temp_f'] }}"
         unit_of_measurement: "°F"
         entity_id: sensor.purpleair
       purpleair_humidity:
-#        unique_id: 'purpleair_SENSORID_humidity'
+        unique_id: 'purpleair_SENSORID_humidity'
         friendly_name: 'PurpleAir Humidity'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['humidity'] }}"
         unit_of_measurement: "%"
         entity_id: sensor.purpleair
       purpleair_pressure:
-#        unique_id: 'purpleair_SENSORID_pressure'
+        unique_id: 'purpleair_SENSORID_pressure'
         friendly_name: 'PurpleAir Pressure'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['pressure'] }}"
         unit_of_measurement: "hPa"
         entity_id: sensor.purpleair
-# Purpleair Enf of Sensors
+# Purpleair End of Sensors
 
 
   - platform: template
@@ -561,6 +556,7 @@ sensor:
       - type: memory_use_percent
       - type: processor_use
       - type: processor_temperature
+      - type: memory_free
       
 # WeatherUnderground sensors
   - platform: wundergroundpws

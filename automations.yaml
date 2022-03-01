@@ -220,7 +220,7 @@
   use_blueprint:
     path: EPMatt/on_off_schedule_state_persistence.yaml
     input:
-      off_time: '23:30:00'
+      off_time: '23:59:00'
       on_time: 09:00:00
       automation_target:
         device_id:
