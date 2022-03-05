@@ -280,3 +280,55 @@
       - '+18155297819'
   mode: queued
   max: 10
+- id: '1646278519431'
+  alias: Front Door Motion to Living Room TV
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 117d653311e2ec12bef6b585bc7f9a29
+    entity_id: binary_sensor.camera6_front_door_motion
+    domain: binary_sensor
+  condition:
+  - condition: time
+    before: '23:00:00'
+    after: 06:00:00
+  action:
+  - service: media_player.select_source
+    data:
+      source: Chromecast
+    target:
+      device_id:
+      - 18cbba96da76862a2509ba42946eafa1
+  - service: media_player.play_media
+    target:
+      entity_id: media_player.living_room_tv
+    data:
+      media_content_id: media-source://camera/camera.camera6_front_door
+      media_content_type: application/vnd.apple.mpegurl
+    metadata:
+      title: Camera 6 - Front Door
+      thumbnail: /api/camera_proxy/camera.camera6_front_door
+      media_class: video
+      children_media_class:
+      navigateIds:
+      - {}
+      - media_content_type: app
+        media_content_id: media-source://camera
+  - delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - service: media_player.turn_off
+    data: {}
+    target:
+      entity_id:
+      - media_player.living_room_tv
+  - service: media_player.turn_off
+    data: {}
+    target:
+      device_id:
+      - 18cbba96da76862a2509ba42946eafa1
+      - f625b0ace9d363f8adba50c62e78471f
+  mode: parallel
