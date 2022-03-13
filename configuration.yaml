@@ -555,7 +555,29 @@ sensor:
                 {{' '}}in transit.{{' '}}
             {%- endmacro %}
           {{deliveries_sentence()}}
-# Mail Summary End of Sesnsors 
+# Mail Summary End of Sesnsors
+
+# Water Softner Level Sensors
+  - platform: template
+    sensors:
+      water_softener_percentage:
+         friendly_name: "Water Softener Percentage"
+         unit_of_measurement: '%'
+         value_template: "{{ ((states('sensor.water_softener')|float * -6.25) + 193.75)| round (2)}}"
+
+  - platform: template
+    sensors:
+      water_softener_need_filled:
+        friendly_name: "Water Softener - Needs filled?"
+        value_template: >-
+          {% if states('sensor.water_softener_percentage')| float < 35 %}
+            on
+          {% else %}
+            off
+          {% endif %}
+# Water Softner Level End of Sensors
+
+
 
 #==================
 #=== System Sensors

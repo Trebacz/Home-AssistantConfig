@@ -293,6 +293,11 @@
   - condition: time
     before: '23:00:00'
     after: 06:00:00
+  - condition: and
+    conditions:
+    - condition: numeric_state
+      entity_id: sensor.wind_speed
+      below: '5'
   action:
   - service: media_player.select_source
     data:
