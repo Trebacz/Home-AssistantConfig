@@ -22,13 +22,13 @@ homeassistant:
   unit_system: imperial
 
 mqtt:
-  broker: 192.168.0.216
-  port: 1883
-  discovery: true
+#  broker: 192.168.0.216
+#  port: 1883
+#  discovery: true
   discovery_prefix: homeassistant
 #  discovery_prefix: zigbee2mqtt/bridge
-  username: !secret mqtt_username
-  password: !secret mqtt_password
+#  username: !secret mqtt_username
+#  password: !secret mqtt_password
   
 # Enable mqtt logging
 logger:
@@ -38,17 +38,17 @@ logger:
     homeassistant.components.mqtt: warning
   
 # Enable Cameras DT -3/2020
-camera:
-   - platform: generic
-     name: frontstreet
-     still_image_url: !secret Camera_URL
-     stream_source: !secret CameraFrontStreet_Source 
+#camera:
+#   - platform: generic
+#     name: frontstreet
+#     still_image_url: !secret CameraFrontStreet_URL
+#     stream_source: !secret CameraFrontStreet_Source
 
-   - platform: generic
-     name: fourpeaks
-     still_image_url: !secret Camera_URL
-     stream_source: !secret CameraFourPeaks_Source
-     
+#   - platform: generic
+#     name: fourpeaks
+#     still_image_url: !secret CameraFourPeaks_URL
+#     stream_source: !secret CameraFourPeaks_Source
+
 #Enable stream
 stream:
 
@@ -442,31 +442,31 @@ sensor:
           {% else %}
             undefined
           {% endif %}
-        entity_id: sensor.purpleair
+#        entity_id: sensor.purpleair
       purpleair_pm25:
         unique_id: 'purpleair_SENSORID_pm25'
         friendly_name: 'PurpleAir PM 2.5'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['PM2_5Value'] }}"
         unit_of_measurement: "μg/m3"
-        entity_id: sensor.purpleair
+#        entity_id: sensor.purpleair
       purpleair_temp:
         unique_id: 'purpleair_SENSORID_temperature'
         friendly_name: 'PurpleAir Temperature'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['temp_f'] }}"
         unit_of_measurement: "°F"
-        entity_id: sensor.purpleair
+#        entity_id: sensor.purpleair
       purpleair_humidity:
         unique_id: 'purpleair_SENSORID_humidity'
         friendly_name: 'PurpleAir Humidity'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['humidity'] }}"
         unit_of_measurement: "%"
-        entity_id: sensor.purpleair
+#        entity_id: sensor.purpleair
       purpleair_pressure:
         unique_id: 'purpleair_SENSORID_pressure'
         friendly_name: 'PurpleAir Pressure'
         value_template: "{{ state_attr('sensor.purpleair','results')[0]['pressure'] }}"
         unit_of_measurement: "hPa"
-        entity_id: sensor.purpleair
+#        entity_id: sensor.purpleair
 # Purpleair End of Sensors
 
 
@@ -563,14 +563,14 @@ sensor:
       water_softener_percentage:
          friendly_name: "Water Softener Percentage"
          unit_of_measurement: '%'
-         value_template: "{{ ((states('sensor.water_softener')|float * -6.25) + 193.75)| round (2)}}"
+         value_template: "{{ ((states('sensor.water_softener')|float * -4.00) + 100.00)| round (2)}}"
 
   - platform: template
     sensors:
       water_softener_need_filled:
         friendly_name: "Water Softener - Needs filled?"
         value_template: >-
-          {% if states('sensor.water_softener_percentage')| float < 35 %}
+          {% if states('sensor.water_softener_percentage')| float < 10 %}
             on
           {% else %}
             off

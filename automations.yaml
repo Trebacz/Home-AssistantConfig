@@ -261,25 +261,24 @@
     to: open
     for:
       hours: 0
-      minutes: 10
+      minutes: 15
       seconds: 0
   action:
   - service: notify.notify
     data:
       title: 🚙 Garage left open!
-      message: Garage door has been open for 10 minutes. Close it?
+      message: Garage door has been open for 15 minutes. Close it?
   - service: tts.google_translate_say
     data:
-      message: Garage door has been open for 10 minutes.
+      message: Garage door has been open for 15 minutes.
       entity_id: media_player.indoor_speakers
   - service: notify.ha_twillio
     data:
-      message: Garage door has been open for 10 minutes. Close it?
+      message: Garage door has been open for 15 minutes. Close it?
       target:
       - '+18155292638'
       - '+18155297819'
-  mode: queued
-  max: 10
+  mode: single
 - id: '1646278519431'
   alias: Front Door Motion to Living Room TV
   description: ''
