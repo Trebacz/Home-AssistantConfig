@@ -5,3 +5,10 @@
 #  discovery_prefix: zigbee2mqtt/bridge
 #  username: !secret mqtt_username
 #  password: !secret mqtt_password
+# WeeWX MQTT Sensors
+  sensor:
+    - name: "Wind Speed"
+      state_topic: "weather/windSpeed_mph"
+      unit_of_measurement: 'mph'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:weather-windy-variant"
