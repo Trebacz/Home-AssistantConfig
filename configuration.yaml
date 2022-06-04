@@ -8,6 +8,7 @@ default_config:
 
 group: !include groups.yaml
 automation: !include automations.yaml
+mqtt: !include mqtt.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 #sensor: !include purpleair.yaml
@@ -21,11 +22,11 @@ homeassistant:
     - type: totp
   unit_system: imperial
 
-mqtt:
+#mqtt:
 #  broker: 192.168.0.216
 #  port: 1883
 #  discovery: true
-  discovery_prefix: homeassistant
+#  discovery_prefix: homeassistant
 #  discovery_prefix: zigbee2mqtt/bridge
 #  username: !secret mqtt_username
 #  password: !secret mqtt_password
@@ -37,18 +38,6 @@ logger:
 #    homeassistant.components.mqtt: debug
     homeassistant.components.mqtt: warning
   
-# Enable Cameras DT -3/2020
-#camera:
-#   - platform: generic
-#     name: frontstreet
-#     still_image_url: !secret CameraFrontStreet_URL
-#     stream_source: !secret CameraFrontStreet_Source
-
-#   - platform: generic
-#     name: fourpeaks
-#     still_image_url: !secret CameraFourPeaks_URL
-#     stream_source: !secret CameraFourPeaks_Source
-
 #Enable stream
 stream:
 
