@@ -22,15 +22,6 @@ homeassistant:
     - type: totp
   unit_system: imperial
 
-#mqtt:
-#  broker: 192.168.0.216
-#  port: 1883
-#  discovery: true
-#  discovery_prefix: homeassistant
-#  discovery_prefix: zigbee2mqtt/bridge
-#  username: !secret mqtt_username
-#  password: !secret mqtt_password
-  
 # Enable mqtt logging
 logger:
   default: warning
@@ -185,49 +176,6 @@ sensor:
       - sensor.master_bedroom_temperature
       - sensor.southbedrooms_temperature
       - sensor.water_leak_sensor_temperature_measurement
-# WeeWX MQTT Sensors
-#  - platform: mqtt
-#    state_topic: "weather/windSpeed_mph"
-#    name: "Wind Speed"
-#    unit_of_measurement: 'mph'
-#    value_template: "{{ value | round(1) }}"
-#    icon: "mdi:weather-windy-variant"
-# Pool Thermometer MQTT Sensors
-  - platform: mqtt
-    state_topic: "pool-thermometer/pool_temp"
-    name: "Pool Temperature"
-    unit_of_measurement: '°F'
-    device_class: 'temperature'
-    # float is to adjust temperature sensor to real pool temperature
-    value_template: "{{ value | round(1) }}"
-#    value_template: >
-#      {
-#      {% if states('sensor.pool_temperature') | float > 0 %}
-#      { (states('sensor.pool_temperature') | float + 14.9) | round(1) }
-#      {% endif %}
-#      }
-    icon: mdi:thermometer
-  - platform: mqtt
-    state_topic: "pool-thermometer/rssi"
-    name: "Pool Thermometer Signal Strength"
-    unit_of_measurement: 'db'
-    value_template: "{{ value | round(1) }}"
-#    icon: "mdi:weather-windy"
-  - platform: mqtt
-    state_topic: 'pool-thermometer/ps-voltage'
-    name: 'Pool Thermometer Battery'
-    unit_of_measurement: 'V'
-    device_class: 'voltage'
-    value_template: "{{ value | round(2) }}"
-    icon: "mdi:lightning-bolt"
-  - platform: mqtt
-    state_topic: "pool-thermometer/ps-soc"
-    name: "Pool Thermometer State of Charge"
-    unit_of_measurement: '%'
-    device_class: 'battery'
-    value_template: "{{ value | round(1) }}"
-    icon: "mdi:battery"
-# Pool Thermometer MQTT End of Sensors
 
 # zwift Start of Sensors 2022-03-04
   - platform: zwift

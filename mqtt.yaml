@@ -115,4 +115,36 @@
       icon: "mdi:lightning-bolt"
 # WeeWX MQTT End of Sensors
   
+# Pool Thermometer MQTT Sensors
+    - name: "Pool Temperature"
+      state_topic: "pool-thermometer/pool_temp"
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      # float is to adjust temperature sensor to real pool temperature
+      value_template: "{{ value | round(1) }}"
+#      value_template: >
+#        {
+#        {% if states('sensor.pool_temperature') | float > 0 %}
+#        { (states('sensor.pool_temperature') | float + 14.9) | round(1) }
+#        {% endif %}
+#        }
+      icon: mdi:thermometer
+    - name: "Pool Thermometer Signal Strength"
+      state_topic: "pool-thermometer/rssi"
+      unit_of_measurement: 'db'
+      value_template: "{{ value | round(1) }}"
+#      icon: "mdi:weather-windy"
+    - name: 'Pool Thermometer Battery'
+      state_topic: 'pool-thermometer/ps-voltage'
+      unit_of_measurement: 'V'
+      device_class: 'voltage'
+      value_template: "{{ value | round(2) }}"
+      icon: "mdi:lightning-bolt"
+    - name: "Pool Thermometer State of Charge"
+      state_topic: "pool-thermometer/ps-soc"
+      unit_of_measurement: '%'
+      device_class: 'battery'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:battery"
+# Pool Thermometer MQTT End of Sensors
 
