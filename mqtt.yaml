@@ -5,6 +5,7 @@
 #  discovery_prefix: zigbee2mqtt/bridge
 #  username: !secret mqtt_username
 #  password: !secret mqtt_password
+
 # WeeWX MQTT Sensors
   sensor:
     - name: "Wind Speed"
@@ -12,3 +13,106 @@
       unit_of_measurement: 'mph'
       value_template: "{{ value | round(1) }}"
       icon: "mdi:weather-windy-variant"
+    - name: "Wind Gust"
+      state_topic: "weather/windGust_mph"
+      unit_of_measurement: 'mph'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:weather-windy"
+    - name: 'Outside Temperature  '
+      state_topic: 'weather/outTemp_F'
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      value_template: "{{ value | round(1) }}"
+      icon: mdi:thermometer
+    - name: "Humidex"
+      state_topic: "weather/humidex_F"
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:thermometer"
+    - name: "Heat Index"
+      state_topic: "weather/heatindex_F"
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:thermometer"
+    - name: "Outdoor Humidity"
+      state_topic: "weather/outHumidity"
+      unit_of_measurement: '%'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:water-percent"
+    - name: "Air Pressure"
+      state_topic: "weather/barometer_inHg"
+      unit_of_measurement: "inHg"
+      value_template: "{{ value | round(3) }}"
+      icon: "mdi:gauge"
+    - name: "Wind Direction"
+      state_topic: "weather/windDir"
+      unit_of_measurement: "degrees"
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:compass"
+    - name: "Wind Gust Direction"
+      state_topic: "weather/windGustDir"
+      unit_of_measurement: "degrees"
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:compass"
+    - name: "Rain Rate"
+      state_topic: "weather/rainRate_inch_per_hour"
+      unit_of_measurement: "in/hour"
+      value_template: "{{ value | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "Rain"
+      state_topic: "weather/rain_in"
+      unit_of_measurement: "in"
+      value_template: "{{ value | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "Hour Rain"
+      state_topic: "weather/hourRain_in"
+      unit_of_measurement: "in"
+      value_template: "{{ value | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "Day Rain"
+      state_topic: "weather/dayRain_in"
+      unit_of_measurement: "in"
+      value_template: "{{ value | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "24 Hour Rain"
+      state_topic: "weather/rain24_in"
+      unit_of_measurement: "in"
+      value_template: "{{ value | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "Rain Total"
+      state_topic: "weather/rain_total"
+      unit_of_measurement: "in"
+      value_template: "{{ value | multiply(0.3937) | round(4) }}"
+      icon: "mdi:weather-rainy"
+    - name: "WeeWX Timestamp"
+      state_topic: "weather/dateTime"
+      unit_of_measurement: "s"
+      value_template: "{{ value }}"
+    - name: "Garage Temperature"
+      state_topic: "weather/inTemp_F"
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:thermometer"
+    - name: "Garage Humidity"
+      state_topic: "weather/inHumidity"
+      unit_of_measurement: '%'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:water-percent"
+    - name: "Garage Dewpoint"
+      state_topic: "weather/inDewpoint_F"
+      unit_of_measurement: '°F'
+      device_class: 'temperature'
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:thermometer"
+    - name: "Weather Station Battery"
+      state_topic: "weather/consBatteryVoltage_volt"
+      unit_of_measurement: 'V'
+      device_class: 'voltage'
+      value_template: "{{ value | round(2) }}"
+      icon: "mdi:lightning-bolt"
+# WeeWX MQTT End of Sensors
+  
+
