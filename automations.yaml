@@ -336,3 +336,50 @@
       - 18cbba96da76862a2509ba42946eafa1
       - f625b0ace9d363f8adba50c62e78471f
   mode: parallel
+- id: '1652032341234'
+  alias: Water Softener Level Low
+  description: ''
+  trigger:
+  - type: value
+    platform: device
+    device_id: 73cb9fef06de261a7786697780cdb740
+    entity_id: sensor.water_softener
+    domain: sensor
+    above: 22
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - service: notify.persistent_notification
+    data:
+      message: Softener salt low. Buy 80 lbs water softener salt.
+  mode: single
+- id: '1653872562603'
+  alias: Turn on at Sunset
+  description: ''
+  trigger:
+  - platform: sun
+    event: sunset
+    offset: 0
+  condition: []
+  action:
+  - type: turn_on
+    device_id: d7a802679c81049ee90bb2651e396fc0
+    entity_id: switch.pool_light
+    domain: switch
+  mode: single
+- id: '1653879586582'
+  alias: Turn off at 10:30 PM
+  description: ''
+  trigger:
+  - platform: time
+    at: '22:30:00'
+  condition: []
+  action:
+  - type: turn_off
+    device_id: d7a802679c81049ee90bb2651e396fc0
+    entity_id: switch.pool_light
+    domain: switch
+  mode: single
