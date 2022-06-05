@@ -36,7 +36,7 @@ google_assistant:
   project_id: home-assistant-d67c1
   service_account: !include SERVICE-ACCOUNT.json
   report_state: true
-  secure_devices_pin: "9164"
+  secure_devices_pin: !secret google_device_pin
 
 recorder:
   db_url: !secret recorder_db_url
