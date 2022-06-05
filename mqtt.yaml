@@ -148,3 +148,32 @@
       icon: "mdi:battery"
 # Pool Thermometer MQTT End of Sensors
 
+# binary sensors
+  binary_sensor:
+    - name: "Replace Weather Station Battery"
+      state_topic: "weather/txBatteryStatus"
+      value_template: "{{ value | round(1) }}"
+      icon: "mdi:battery"
+      payload_on: "1.0"
+      payload_off: "0.0"
+      
+# cover sensors
+  cover:
+    - name: "Garage Door"
+      state_topic: "homeassistant/garage/state"
+      command_topic: "shellies/shelly1-E8DB84D6C1D8/relay/0/command"
+      availability_topic: "shellies/shelly1-E8DB84D6C1D8/online"
+      retain: false
+      payload_open: "on"
+      payload_close: "on"
+      payload_stop: "on"
+      state_open: "open"
+      state_closed: "closed"
+      payload_available: "true"
+      payload_not_available: "false"
+      device_class: "garage"
+      unique_id: "shelly1-E8DB84D6C1D8"
+      #optimistic: true
+
+
+

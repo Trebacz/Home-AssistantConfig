@@ -73,10 +73,6 @@ notify:
     platform: twilio_sms
     from_number: +14805737302
     
-#spotify:
-#  client_id: !secret spotify_id
-#  client_secret: !secret spotify_secret
-
 spotcast:
   sp_dc: !secret sp_dc
   sp_key: !secret sp_key
@@ -128,13 +124,6 @@ binary_sensor:
         value_template: "{{ is_state('camera.frontdoor', 'motion') }}"
         delay_off: 
           seconds: 30
-  - platform: mqtt
-    state_topic: "weather/txBatteryStatus"
-    name: "Replace Weather Station Battery"
-    value_template: "{{ value | round(1) }}"
-    icon: "mdi:battery"
-    payload_on: "1.0"
-    payload_off: "0.0"
   - platform: template
     sensors:
       all_windows:
@@ -454,24 +443,6 @@ panel_iframe:
     url: "https://zigbee2mqtt.trebacz.com/"
     icon: mdi:lan
     require_admin: true
-
-cover:
-  - platform: mqtt
-    name: "Garage Door"
-    state_topic: "homeassistant/garage/state"
-    command_topic: "shellies/shelly1-E8DB84D6C1D8/relay/0/command"
-    availability_topic: "shellies/shelly1-E8DB84D6C1D8/online"
-    retain: false
-    payload_open: "on"
-    payload_close: "on"
-    payload_stop: "on"
-    state_open: "open"
-    state_closed: "closed"
-    payload_available: "true"
-    payload_not_available: "false"
-    device_class: "garage"
-    unique_id: "shelly1-E8DB84D6C1D8"
-    #optimistic: true
 
 http:
   use_x_forwarded_for: true
