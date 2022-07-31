@@ -72,10 +72,10 @@
   - condition: sun
     after: sunrise
   - condition: template
-    value_template: "{{\n  is_state('binary_sensor.dinning_room_door', 'on') or\n\
-      \  is_state('binary_sensor.master_bedroom_door_and_window', 'on') or\n  is_state('binary_sensor.bedroom_window',\
-      \ 'on') or\n  is_state('binary_sensor.office_window', 'on') or\n  is_state('binary_sensor.living_room',\
-      \ 'on')\n}}\n"
+    value_template: "{{\n  is_state('binary_sensor.dinning_room_door', 'on') or\n
+      \ is_state('binary_sensor.master_bedroom_door_and_window', 'on') or\n  is_state('binary_sensor.bedroom_window',
+      'on') or\n  is_state('binary_sensor.office_window', 'on') or\n  is_state('binary_sensor.living_room',
+      'on')\n}}\n"
   - condition: template
     value_template: '{{ as_timestamp(now()) - as_timestamp(states.automation.close_windows.attributes.last_triggered)
       | int > 7200 }}'
@@ -254,19 +254,28 @@
       topic: shellies/command
       payload: announce
 - id: b8aa033f-800f-4d26-8f99-f533d705421f
-  alias: '[📣] Notify when garage door was left open for too long'
+  alias: "[\U0001F4E3] Notify when garage door was left open for too long"
   trigger:
   - platform: state
-    entity_id: cover.garage_door
+    entity_id:
+    - cover.garage_door
     to: open
     for:
       hours: 0
       minutes: 15
       seconds: 0
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.garage_door
+  condition:
+  - condition: state
+    entity_id: cover.garage_door
+    state: open
   action:
   - service: notify.notify
     data:
-      title: 🚙 Garage left open!
+      title: "\U0001F699 Garage left open!"
       message: Garage door has been open for 15 minutes. Close it?
   - service: tts.google_translate_say
     data:
@@ -278,7 +287,11 @@
       target:
       - '+18155292638'
       - '+18155297819'
-  mode: single
+  - service: timer.start
+    data:
+      duration: '15'
+    target:
+      entity_id: timer.garage_door
 - id: '1646278519431'
   alias: Front Door Motion to Living Room TV
   description: ''
@@ -382,4 +395,81 @@
     device_id: d7a802679c81049ee90bb2651e396fc0
     entity_id: switch.pool_light
     domain: switch
+  - type: turn_off
+    device_id: 58eb5e43ca7528aa407d808560975814
+    entity_id: switch.kitchen_tv_and_computer_outlet
+    domain: switch
   mode: single
+- id: '1655668385533'
+  alias: Turn on at 6 AM
+  description: ''
+  trigger:
+  - platform: time
+    at: 06:00:00
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 58eb5e43ca7528aa407d808560975814
+    entity_id: switch.kitchen_tv_and_computer_outlet
+    domain: switch
+  mode: single
+- id: '1657990283413'
+  alias: Alert when outside temperature isn't updating
+  description: ''
+  use_blueprint:
+    path: Mr-Groch/offline-notification-for-sensors-with-last_seen.yaml
+    input:
+      hours: 1
+      exclude:
+        entity_id:
+        - sensor.outside_temperature
+      actions:
+      - service: notify.persistent_notification
+        data:
+          message: Outside temperature nit reporting
+- id: '1658687930209'
+  alias: Garage Bench Light
+  description: ''
+  use_blueprint:
+    path: freakshock88/motion_illuminance_activated_entity.yaml
+    input:
+      motion_sensor: binary_sensor.garage_motion_occupancy
+      target_entity: switch.garage_bench_light
+      no_motion_wait: '2'
+- id: '1658707653745'
+  alias: Garage Overhead Light
+  description: ''
+  use_blueprint:
+    path: freakshock88/motion_illuminance_activated_entity.yaml
+    input:
+      motion_sensor: binary_sensor.garage_motion_occupancy
+      target_entity: switch.garage_overhead_light
+      no_motion_wait: '4'
+- id: '1659286961861'
+  alias: "[\U0001F4E3] Notify when garage door was left open for too long (TTS Only)"
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - timer.garage_door
+    to: open
+    for:
+      minutes: 15
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.garage_door
+  condition:
+  - condition: state
+    entity_id: cover.garage_door
+    state: open
+  action:
+  - service: tts.google_translate_say
+    data:
+      message: Garage door has been open for 15 minutes.
+      entity_id: media_player.indoor_speakers
+  - service: timer.start
+    data:
+      duration: '15'
+    target:
+      entity_id: timer.garage_door

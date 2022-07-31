@@ -16,7 +16,7 @@ scene: !include scenes.yaml
 # Text to speech
 tts:
   - platform: google_translate
-  
+
 homeassistant:
   auth_mfa_modules:
     - type: totp
@@ -28,9 +28,28 @@ logger:
   logs:
 #    homeassistant.components.mqtt: debug
     homeassistant.components.mqtt: warning
-  
+#    custom_components.mail_and_packages: debug
+
 #Enable stream
 stream:
+
+alert:
+  garage_door:
+    name: Garage is open
+    message: Garage is open
+    done_message: Garage is closed
+    entity_id: cover.garage_door
+    state: 'open'
+    repeat:
+      - 15
+      - 30
+      - 60
+    can_acknowledge: false
+    skip_first: true
+    notifiers:
+      - mobile_app_sm_g955u1
+      - mobile_app_wendy_s_phone
+      - garage_open_notification
 
 google_assistant:
   project_id: home-assistant-d67c1
@@ -46,7 +65,7 @@ recorder:
 #      - automation
       - updater
     entity_globs:
-      - sensor.*_uptime* 
+      - sensor.*_uptime*
       - sensor.uptime_*
     entities:
 #      - sun.sun # Don't record sun data
@@ -71,8 +90,21 @@ twilio:
 notify:
   - name: HA_Twillio
     platform: twilio_sms
-    from_number: +14805737302
-    
+    from_number: !secret twillio_from_number
+  - platform: group
+    name: garage_open_notification
+    services:
+      - service: notify
+        data:
+          title: "\U0001F699 Garage left open!"
+          message: Garage door has been open for 15 minutes. Close it?
+#      - service: ha_twillio
+#        data:
+#          message: Garage door has been open for 15 minutes. Close it?
+#          target:
+#          - '+18155292638'
+#          - '+18155297819'    
+
 spotcast:
   sp_dc: !secret sp_dc
   sp_key: !secret sp_key
@@ -89,7 +121,7 @@ binary_sensor:
     scan_interval: 60
     name: Smoothwall Ping
   - platform: ping
-    host: trebacz.com
+    host: www.trebacz.com
     count: 5
     scan_interval: 60
     name: Trebacz Ping
@@ -172,108 +204,6 @@ sensor:
     password: !secret my_zwift_password
 #    players:
 #      - !secret my_friends_zwift_player_id
-
-# Purpleair Start of Sensors
-  - platform: rest
-    name: 'PurpleAir'
-
-    # Substitute in the URL of the sensor you care about.  To find the URL, go
-    # to purpleair.com/map, find your sensor, click on it, click on "Get This
-    # Widget" then click on "JSON".
-    resource: https://www.purpleair.com/json?key=B83XPT6HV1FAKE9W&show=125025
-
-    # Only query once a minute to avoid rate limits:
-    scan_interval: 60
-
-    # Set this sensor to be the AQI value.
-    #
-    # Code translated from JavaScript found at:
-    # https://docs.google.com/document/d/15ijz94dXJ-YAZLi9iZ_RaBwrZ4KtYeCy08goGBwnbCU/edit#
-    value_template: >
-      {{ value_json["results"][0]["Label"] }}
-    unit_of_measurement: ""
-    # The value of the sensor can't be longer than 255 characters, but the
-    # attributes can.  Store away all the data for use by the templates below.
-    json_attributes:
-      - results
-      
-  - platform: template
-    sensors:
-      purpleair_aqi:
-        unique_id: 'purpleair_SENSORID_aqi_pm25'
-        friendly_name: 'PurpleAir PM2.5 AQI'
-        value_template: >
-          {% macro calcAQI(Cp, Ih, Il, BPh, BPl) -%}
-            {{ (((Ih - Il)/(BPh - BPl)) * (Cp - BPl) + Il)|round|float(0) }}
-          {%- endmacro %}
-          {% if (states('sensor.purpleair_pm25')|float(0)) > 1000 %}
-            invalid
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 350.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 500.0, 401.0, 500.0, 350.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 250.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 400.0, 301.0, 350.4, 250.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 150.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 300.0, 201.0, 250.4, 150.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 55.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 200.0, 151.0, 150.4, 55.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 35.5 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 150.0, 101.0, 55.4, 35.5) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) > 12.1 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 100.0, 51.0, 35.4, 12.1) }}
-          {% elif (states('sensor.purpleair_pm25')|float(0)) >= 0.0 %}
-            {{ calcAQI((states('sensor.purpleair_pm25')|float(0)), 50.0, 0.0, 12.0, 0.0) }}
-          {% else %}
-            invalid
-          {% endif %}
-        unit_of_measurement: "bit"
-      purpleair_description:
-        unique_id: 'purpleair_SENSORID_description'
-        friendly_name: 'PurpleAir AQI Description'
-        value_template: >
-          {% if (states('sensor.purpleair_aqi')|float(0)) >= 401.0 %}
-            Hazardous
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 301.0 %}
-            Hazardous
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 201.0 %}
-            Very Unhealthy
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 151.0 %}
-            Unhealthy
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 101.0 %}
-            Unhealthy for Sensitive Groups
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 51.0 %}
-            Moderate
-          {% elif (states('sensor.purpleair_aqi')|float(0)) >= 0.0 %}
-            Good
-          {% else %}
-            undefined
-          {% endif %}
-#        entity_id: sensor.purpleair
-      purpleair_pm25:
-        unique_id: 'purpleair_SENSORID_pm25'
-        friendly_name: 'PurpleAir PM 2.5'
-        value_template: "{{ state_attr('sensor.purpleair','results')[0]['PM2_5Value'] }}"
-        unit_of_measurement: "μg/m3"
-#        entity_id: sensor.purpleair
-      purpleair_temp:
-        unique_id: 'purpleair_SENSORID_temperature'
-        friendly_name: 'PurpleAir Temperature'
-        value_template: "{{ state_attr('sensor.purpleair','results')[0]['temp_f'] }}"
-        unit_of_measurement: "°F"
-#        entity_id: sensor.purpleair
-      purpleair_humidity:
-        unique_id: 'purpleair_SENSORID_humidity'
-        friendly_name: 'PurpleAir Humidity'
-        value_template: "{{ state_attr('sensor.purpleair','results')[0]['humidity'] }}"
-        unit_of_measurement: "%"
-#        entity_id: sensor.purpleair
-      purpleair_pressure:
-        unique_id: 'purpleair_SENSORID_pressure'
-        friendly_name: 'PurpleAir Pressure'
-        value_template: "{{ state_attr('sensor.purpleair','results')[0]['pressure'] }}"
-        unit_of_measurement: "hPa"
-#        entity_id: sensor.purpleair
-# Purpleair End of Sensors
-
 
   - platform: template
     sensors:
@@ -403,7 +333,7 @@ sensor:
     pws_id: KAZFOUNT19
     latitude: 33.6075
     longitude: -111.7465
-    numeric_precision: decimal
+    numeric_precision: none
     monitored_conditions:
       - humidity
       - temp
@@ -425,17 +355,149 @@ sensor:
       - weather_4n
       - weather_5d
       - weather_5n
-      - temp_high_1d
-      - temp_low_1d
-      - wind_1d
-      - precip_1d
-      - precip_chance_1d
       - winddir
       - obsTimeLocal
       - stationID
       - elev
       - today_summary
+      
+      - temp_high_1d
+      - temp_low_1d
+      - precip_1d
+      - precip_chance_1d
+      - wind_1d
 
+      - temp_high_2d
+      - temp_low_2d
+      - precip_2d
+      - precip_chance_2d
+      - wind_2d
+
+      - temp_high_3d
+      - temp_low_3d
+      - precip_3d
+      - precip_chance_3d
+      - wind_3d
+
+      - temp_high_4d
+      - temp_low_4d
+      - precip_4d
+      - precip_chance_4d
+      - wind_4d
+
+      - temp_high_5d
+      - temp_low_5d
+      - precip_5d
+      - precip_chance_5d
+      - wind_5d
+
+timer:    
+  garage_door:
+    duration: '00:15:00'
+
+weather:
+  - platform: template
+    name: WUnderground Template
+    temperature_template: "{{ states('sensor.wupws_temp') | float }}"
+    humidity_template: "{{ states('sensor.wupws_humidity') | float }}"
+    pressure_template: "{{ states('sensor.wupws_pressure') | int }}"
+    wind_speed_template: "{{ states('sensor.wupws_windspeed') | float }}"
+    wind_bearing_template: "{{ states('sensor.wupws_winddir') | float }}"
+    attribution_template: "{{ state_attr('sensor.wupws_temp', 'attribution') }}"
+    unique_id: TrebaczPWSWeather
+
+    condition_template: >
+
+      {% set condition_id = state_attr('sensor.wupws_weather_1d', 'entity_picture') | regex_replace(find='/local/wupws_icons/', replace='', ignorecase=False) | regex_replace(find='.png', replace='', ignorecase=False) | int(0) %}
+
+      {% if condition_id in [31] -%}
+        clear-night
+      {% elif condition_id in [26,27,28] -%}
+        cloudy
+      {% elif condition_id in [19,21,22] -%}
+        exceptional
+      {% elif condition_id in [20] -%}
+        fog
+      {% elif condition_id in [17,25,35] -%}
+        hail
+      {% elif condition_id in [47] -%}
+        lightning
+      {% elif condition_id in [26,27,28] -%}
+        cloudy
+      {% elif condition_id in [37,38] -%}
+        lightning-rainy
+      {% elif condition_id in [4] -%}
+        Lightning/ thunderstorms and rain
+      {% elif condition_id in [29,30] -%}
+        partlycloudy
+      {% elif condition_id in [9,11,12,39,45] -%}
+        rainy
+      {% elif condition_id in [5,13,14,15,16,41,42,43,46] -%}
+        snowy
+      {% elif condition_id in [6,7,8,10,18] -%}
+        snowy-rainy
+      {% elif condition_id in [32,33,34,36] -%}
+        sunny
+      {% elif condition_id in [0,1,2,3,23,24,40] -%}
+        windy
+      {% elif condition_id in [44] -%}
+        Not Available (N/A)
+      {%- else -%}
+        unknown
+      {%- endif %}
+
+
+    # forecast_template: "{{ state_attr('weather.dwd_weather_muenster_zentrum', 'forecast') }}"
+    forecast_template: >-
+      [
+        {
+          {% set dat = now() + timedelta( days = 1 ) %}
+          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
+          "temperature": {{ states('sensor.wupws_temp_high_1d') }},
+          "templow": {{ states('sensor.wupws_temp_low_1d') }},
+          "precipitation": {{ states('sensor.wupws_precip_1d') }},
+          "precipitation_probability": {{ states('sensor.wupws_precip_chance_1d') }},
+          "wind_speed": {{ states('sensor.wupws_wind_1d') }},
+          
+        },
+        {
+          {% set dat = now() + timedelta( days = 2 ) %}
+          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
+          "temperature": {{ states('sensor.wupws_temp_high_2d') }},
+          "templow": {{ states('sensor.wupws_temp_low_2d') }},
+          "precipitation": {{ states('sensor.wupws_precip_2d') }},
+          "precipitation_probability": {{ states('sensor.wupws_precip_chance_2d') }},
+          "wind_speed": {{ states('sensor.wupws_wind_2d') }},
+        },
+        {
+          {% set dat = now() + timedelta( days = 3 ) %}
+          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
+          "temperature": {{ states('sensor.wupws_temp_high_3d') }},
+          "templow": {{ states('sensor.wupws_temp_low_3d') }},
+          "precipitation": {{ states('sensor.wupws_precip_3d') }},
+          "precipitation_probability": {{ states('sensor.wupws_precip_chance_3d') }},
+          "wind_speed": {{ states('sensor.wupws_wind_3d') }},
+        },
+        {
+          {% set dat = now() + timedelta( days = 4 ) %}
+          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
+          "temperature": {{ states('sensor.wupws_temp_high_4d') }},
+          "templow": {{ states('sensor.wupws_temp_low_4d') }},
+          "precipitation": {{ states('sensor.wupws_precip_4d') }},
+          "precipitation_probability": {{ states('sensor.wupws_precip_chance_4d') }},
+          "wind_speed": {{ states('sensor.wupws_wind_4d') }},
+        },
+        {
+          {% set dat = now() + timedelta( days = 5 ) %}
+          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
+          "temperature": {{ states('sensor.wupws_temp_high_5d') }},
+          "templow": {{ states('sensor.wupws_temp_low_5d') }},
+          "precipitation": {{ states('sensor.wupws_precip_5d') }},
+          "precipitation_probability": {{ states('sensor.wupws_precip_chance_5d') }},
+          "wind_speed": {{ states('sensor.wupws_wind_5d') }},
+        }
+      ]
+      
 panel_iframe:
   # Zigbee2mqtt menu
   zigbee2mqtt:
