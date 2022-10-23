@@ -41,27 +41,34 @@
     platform: state
     to: 'on'
   condition:
-  - condition: device
-    device_id: 28cb21d2dd5e471f8a6a1bdfb963126e
-    domain: climate
-    entity_id: climate.bedroom_2
-    hvac_mode: cool
-    type: is_hvac_mode
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: climate.bedroom
+      state: cool
+    - condition: state
+      entity_id: climate.south_bedrooms
+      state: cool
   - after: sunrise
     after_offset: '1:00:00'
     condition: sun
   - before: '22:00:00'
     condition: time
+    after: 00:00:00
   action:
   - data:
       message: Turn off the AC and consider opening the windows tonight
     service: persistent_notification.create
+  - service: tts.google_translate_say
+    data:
+      entity_id: media_player.indoor_speakers
+      message: Turn off the AC and consider opening the windows tonight
   - data:
       message: Turn off the AC and consider opening the windows tonight
     service: notify.notify
   mode: single
 - id: '1599510701899'
-  alias: Close windows
+  alias: Windows - Close
   description: ''
   trigger:
   - entity_id: binary_sensor.cool_inside
@@ -71,11 +78,9 @@
   condition:
   - condition: sun
     after: sunrise
-  - condition: template
-    value_template: "{{\n  is_state('binary_sensor.dinning_room_door', 'on') or\n
-      \ is_state('binary_sensor.master_bedroom_door_and_window', 'on') or\n  is_state('binary_sensor.bedroom_window',
-      'on') or\n  is_state('binary_sensor.office_window', 'on') or\n  is_state('binary_sensor.living_room',
-      'on')\n}}\n"
+  - condition: state
+    entity_id: binary_sensor.all_windows
+    state: 'on'
   - condition: template
     value_template: '{{ as_timestamp(now()) - as_timestamp(states.automation.close_windows.attributes.last_triggered)
       | int > 7200 }}'
@@ -99,7 +104,7 @@
   initial_state: true
   mode: single
 - id: '1599511189810'
-  alias: Open Windows
+  alias: Windows - Open
   description: ''
   trigger:
   - entity_id: binary_sensor.warm_inside
@@ -109,14 +114,20 @@
   condition:
   - after: sunrise
     condition: sun
-  - before: '22:00'
+  - before: '22:00:00'
     condition: time
-  - condition: template
-    value_template: '{{is_state(''binary_sensor.living_room'', ''off'')}}'
+    after: 00:00:00
+  - condition: state
+    entity_id: binary_sensor.all_windows
+    state: 'off'
   action:
   - data:
       message: Open the windows - it's cooler outside.
     service: persistent_notification.create
+  - service: tts.google_translate_say
+    data:
+      entity_id: media_player.indoor_speakers
+      message: Open the windows it's cooler outside
   - data:
       message: Open the windows - it's cooler outside.
     service: notify.notify
@@ -253,45 +264,6 @@
     data:
       topic: shellies/command
       payload: announce
-- id: b8aa033f-800f-4d26-8f99-f533d705421f
-  alias: "[\U0001F4E3] Notify when garage door was left open for too long"
-  trigger:
-  - platform: state
-    entity_id:
-    - cover.garage_door
-    to: open
-    for:
-      hours: 0
-      minutes: 15
-      seconds: 0
-  - platform: event
-    event_type: timer.finished
-    event_data:
-      entity_id: timer.garage_door
-  condition:
-  - condition: state
-    entity_id: cover.garage_door
-    state: open
-  action:
-  - service: notify.notify
-    data:
-      title: "\U0001F699 Garage left open!"
-      message: Garage door has been open for 15 minutes. Close it?
-  - service: tts.google_translate_say
-    data:
-      message: Garage door has been open for 15 minutes.
-      entity_id: media_player.indoor_speakers
-  - service: notify.ha_twillio
-    data:
-      message: Garage door has been open for 15 minutes. Close it?
-      target:
-      - '+18155292638'
-      - '+18155297819'
-  - service: timer.start
-    data:
-      duration: '15'
-    target:
-      entity_id: timer.garage_door
 - id: '1646278519431'
   alias: Front Door Motion to Living Room TV
   description: ''
@@ -358,7 +330,7 @@
     device_id: 73cb9fef06de261a7786697780cdb740
     entity_id: sensor.water_softener
     domain: sensor
-    above: 22
+    above: 20
     for:
       hours: 1
       minutes: 0
@@ -414,19 +386,24 @@
     domain: switch
   mode: single
 - id: '1657990283413'
-  alias: Alert when outside temperature isn't updating
+  alias: Alert when MQTT outside temperature is not updating
   description: ''
-  use_blueprint:
-    path: Mr-Groch/offline-notification-for-sensors-with-last_seen.yaml
-    input:
-      hours: 1
-      exclude:
-        entity_id:
-        - sensor.outside_temperature
-      actions:
-      - service: notify.persistent_notification
-        data:
-          message: Outside temperature nit reporting
+  trigger:
+  - entity_id:
+    - sensor.outside_temperature
+    platform: state
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    to: unkown
+  condition:
+  action:
+  - service: notify.persistent_notification
+    data:
+      message: Outside temperature not reporting
+  initial_state: true
+  mode: single
 - id: '1658687930209'
   alias: Garage Bench Light
   description: ''
@@ -435,26 +412,19 @@
     input:
       motion_sensor: binary_sensor.garage_motion_occupancy
       target_entity: switch.garage_bench_light
-      no_motion_wait: '2'
-- id: '1658707653745'
-  alias: Garage Overhead Light
-  description: ''
-  use_blueprint:
-    path: freakshock88/motion_illuminance_activated_entity.yaml
-    input:
-      motion_sensor: binary_sensor.garage_motion_occupancy
-      target_entity: switch.garage_overhead_light
-      no_motion_wait: '4'
+      no_motion_wait: '5'
 - id: '1659286961861'
   alias: "[\U0001F4E3] Notify when garage door was left open for too long (TTS Only)"
   description: ''
   trigger:
   - platform: state
     entity_id:
-    - timer.garage_door
+    - cover.garage_door
     to: open
     for:
+      hours: 0
       minutes: 15
+      seconds: 0
   - platform: event
     event_type: timer.finished
     event_data:
@@ -470,6 +440,55 @@
       entity_id: media_player.indoor_speakers
   - service: timer.start
     data:
-      duration: '15'
+      duration: '900'
     target:
       entity_id: timer.garage_door
+- id: '1659903537321'
+  alias: Garage Overhead Light - On with Motion
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: e041a6830d52cb5be735ae2c3de4cd97
+    entity_id: binary_sensor.garage_motion_occupancy
+    domain: binary_sensor
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 5130c5922ea3e0ba183a2afb2a5bf83e
+    entity_id: switch.garage_overhead_light
+    domain: switch
+  - type: turn_on
+    device_id: a2431dce1555fadcc08f69cdda4bba3a
+    entity_id: switch.garage_bench_light
+    domain: switch
+  mode: single
+- id: '1659903661253'
+  alias: Garage Overhead Light - Off with no Motion
+  description: ''
+  trigger:
+  - type: no_motion
+    platform: device
+    device_id: e041a6830d52cb5be735ae2c3de4cd97
+    entity_id: binary_sensor.garage_motion_occupancy
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 4
+      seconds: 0
+  condition:
+  - condition: device
+    type: is_on
+    device_id: 5130c5922ea3e0ba183a2afb2a5bf83e
+    entity_id: switch.garage_overhead_light
+    domain: switch
+  action:
+  - type: turn_off
+    device_id: 5130c5922ea3e0ba183a2afb2a5bf83e
+    entity_id: switch.garage_overhead_light
+    domain: switch
+  - type: turn_off
+    device_id: a2431dce1555fadcc08f69cdda4bba3a
+    entity_id: switch.garage_bench_light
+    domain: switch
+  mode: single
