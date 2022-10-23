@@ -189,13 +189,16 @@ sensor:
     username: Trebacz
     id: !secret untapped_id
     secret: !secret untapped_secret
-    
+
   - platform: min_max
     name: average_house_temp
     type: mean
+    round_digits: 1
     entity_ids:
       - sensor.master_bedroom_temperature
       - sensor.southbedrooms_temperature
+      - sensor.guest_bedroom_environment_temperature
+      - ensor.office_environment_temperature
       - sensor.water_leak_sensor_temperature_measurement
 
 # zwift Start of Sensors 2022-03-04
