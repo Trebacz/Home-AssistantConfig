@@ -1,0 +1,58 @@
+- id: '1660515095915'
+  name: New Pool Entertainment
+  entities:
+    media_player.43_tcl_roku_patio_tv:
+      source_list:
+      - Home
+      - 4K Spotlight
+      - Amazon Music
+      - Apple TV
+      - Aquatic Life
+      - HBO Max
+      - Home DIY
+      - Hulu
+      - NASA TV Beta
+      - Netflix
+      - Philo
+      - Plex - Free Movies & TV
+      - Prime Video
+      - Radio Paradise
+      - Smithsonian Channel
+      - Spotify Music
+      - The Roku Channel
+      - Vudu Movie & TV Store
+      - XUMO - Free Movies & TV
+      - YouTube
+      - YouTube TV
+      - chromcast
+      - discovery+ | Stream TV Shows
+      device_class: tv
+      friendly_name: 43" TCL Roku Patio TV
+      supported_features: 151481
+      app_name: Radio Paradise
+      source: Radio Paradise
+      media_content_type: app
+      app_id: '1619'
+      entity_picture: /api/media_player_proxy/media_player.43_tcl_roku_patio_tv?token=f04c2267ce8f06a5d5db38fffd24816b9b93b5b49f7e5db50ff8328ad3217f81&cache=5799bd8cbdb450cc
+      media_duration: 518
+      media_position: 46
+      media_position_updated_at: '2022-08-20T04:37:39.718893'
+      state: playing
+    remote.43_tcl_roku_patio_tv:
+      friendly_name: 43" TCL Roku Patio TV
+      supported_features: 0
+      state: 'on'
+    switch.patio_mister_outlet:
+      icon: mdi:string-lights
+      friendly_name: Patio Mister Outlet
+      state: 'on'
+    switch.patio_outlet:
+      icon: mdi:television
+      friendly_name: Patio Outlet
+      state: 'on'
+  icon: mdi:pool
+  metadata:
+    switch.patio_mister_outlet:
+      entity_only: true
+    switch.patio_outlet:
+      entity_only: true
