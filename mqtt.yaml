@@ -24,6 +24,7 @@
       device_class: 'temperature'
       value_template: "{{ value | round(1) }}"
       icon: mdi:thermometer
+      expire_after: 900
     - name: "Humidex"
       state_topic: "weather/humidex_F"
       unit_of_measurement: '°F'
@@ -147,6 +148,15 @@
       value_template: "{{ value | round(1) }}"
       icon: "mdi:battery"
 # Pool Thermometer MQTT End of Sensors
+
+# RTL_433 MQTT Sensors
+    - name: Schrader_pressure_0649868
+      state_topic: "rtl__433/rackable2013internal2021/devices/TPMS/Schrader/0649868/pressure_kPa"
+      device_class: Pressure
+      unique_id: 0649868_pressure
+#      unit_of_measurement: 'psi'
+# RTL_433 MQTT End of Sensors
+
 
 # binary sensors
   binary_sensor:
