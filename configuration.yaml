@@ -21,6 +21,7 @@ homeassistant:
   auth_mfa_modules:
     - type: totp
   unit_system: imperial
+  country: US
 
 # Enable mqtt logging
 logger:
@@ -59,7 +60,8 @@ google_assistant:
 
 recorder:
   db_url: !secret recorder_db_url
-  commit_interval: 30
+  commit_interval: 30 #defaults to 5
+  purge_keep_days: 10 #defaults to 10
   exclude:
     domains:
 #      - automation
@@ -67,13 +69,15 @@ recorder:
     entity_globs:
       - sensor.*_uptime*
       - sensor.uptime_*
+      - sensor.vacuum_* #Added to reduce roborock errors
+      - automation.vacuum_* #Added to reduce roborock errors
     entities:
 #      - sun.sun # Don't record sun data
 #      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
       - sensor.date
     event_types:
 #      - call_service # Don't record service calls
-  
+
 influxdb:
   host: !secret influxdb_host
   port: 8086
@@ -82,11 +86,11 @@ influxdb:
   password: !secret influxdb_password
   max_retries: 3
   default_measurement: state
-  
+
 twilio:
   account_sid: !secret twillio_sid
   auth_token: !secret twillio_token
-  
+
 notify:
   - name: HA_Twillio
     platform: twilio_sms
@@ -103,7 +107,7 @@ notify:
 #          message: Garage door has been open for 15 minutes. Close it?
 #          target:
 #          - '+18155292638'
-#          - '+18155297819'    
+#          - '+18155297819'
 
 spotcast:
   sp_dc: !secret sp_dc
@@ -148,14 +152,14 @@ binary_sensor:
         value_template: >
           {{ states('sensor.average_house_temp') | float(0) < states('sensor.outside_temperature') | float(0)}}
             platform: template
-  - platform: template
-    sensors:
-      motion_frontdoor:
-        friendly_name: Camera frontdoor
-        device_class: motion
-        value_template: "{{ is_state('camera.frontdoor', 'motion') }}"
-        delay_off: 
-          seconds: 30
+#  - platform: template
+#    sensors:
+#      motion_frontdoor:
+#        friendly_name: Camera frontdoor
+#        device_class: motion
+#        value_template: "{{ is_state('camera.frontdoor', 'motion') }}"
+#        delay_off:
+#          seconds: 30
   - platform: template
     sensors:
       all_windows:
@@ -181,14 +185,25 @@ binary_sensor:
              is_state('binary_sensor.master_bedroom_sliding_door_and_window', 'on') or
              is_state('binary_sensor.pool_bathroom_contact', 'on') }}
         device_class: door
-
+  - platform: template #Pool Thermometer Offline not used by automation now
+    sensors:
+      pool_themometer_offline:
+        friendly_name: "Pool Thermometer Offline for a while"
+        value_template: >
+          {{(as_timestamp(now()) - as_timestamp(states('sensor.pool_thermometer_uptime'))) // 60|int(0) > 31 }}
+        device_class: problem
 
     # Example configuration.yaml entry
 sensor:
-  - platform: untappd
-    username: Trebacz
-    id: !secret untapped_id
-    secret: !secret untapped_secret
+  - platform: command_line
+    name: ha_instances
+    command: pgrep -f 'python3 -m homeassistant --config /config' | wc -l
+    scan_interval: 60
+
+#  - platform: untappd
+#    username: Trebacz
+#    id: !secret untapped_id
+#    secret: !secret untapped_secret
 
   - platform: min_max
     name: average_house_temp
@@ -198,7 +213,7 @@ sensor:
       - sensor.master_bedroom_temperature
       - sensor.southbedrooms_temperature
       - sensor.guest_bedroom_environment_temperature
-      - ensor.office_environment_temperature
+      - sensor.office_environment_temperature
       - sensor.water_leak_sensor_temperature_measurement
 
 # zwift Start of Sensors 2022-03-04
@@ -228,7 +243,7 @@ sensor:
     sensors:
       mail_deliveries_message:
         friendly_name: "Deliveries Summary"
-        value_template: > 
+        value_template: >
           {# Deliveries Sentence #}
             {% macro deliveries_sentence() -%}
                   {%- if states("sensor.mail_usps_mail")|int == 0 -%}
@@ -236,19 +251,19 @@ sensor:
                   {%- else -%}
                     {{states("sensor.mail_usps_mail")|int}}
                   {%- endif -%}
-                {{' '}} 
+                {{' '}}
                   {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
                     pieces of mail
                   {%- else -%}
                     pieces of mail
                   {%- endif -%}
-                {{' '}}will be delivered.{{' '}} 
+                {{' '}}will be delivered.{{' '}}
                   {%- if states("sensor.mail_usps_delivering")|int == 0 -%}
                     No
                   {%- else -%}
                     {{states("sensor.mail_usps_delivering")|int}}
                   {%- endif -%}
-                {{' '}} 
+                {{' '}}
                   {%- if states("sensor.mail_usps_delivering")|int == 1 -%}
                     USPS package is
                   {%- else -%}
@@ -260,7 +275,7 @@ sensor:
                   {%- else -%}
                     {{states("sensor.mail_fedex_delivering")|int}}
                   {%- endif -%}
-                {{' '}} 
+                {{' '}}
                   {%- if states("sensor.mail_fedex_delivering")|int == 1 -%}
                     FedEx package is
                   {%- else -%}
@@ -272,7 +287,7 @@ sensor:
                   {%- else -%}
                     {{states("sensor.mail_ups_delivering")|int}}
                   {%- endif -%}
-                {{' '}} 
+                {{' '}}
                   {%- if states("sensor.mail_ups_delivering")|int == 1 -%}
                     UPS package is
                   {%- else -%}
@@ -284,7 +299,7 @@ sensor:
                   {%- else -%}
                     {{states("sensor.mail_amazon_packages")|int}}
                   {%- endif -%}
-                {{' '}} 
+                {{' '}}
                   {%- if states("sensor.mail_amazon_packages")|int == 1 -%}
                     Amazon package is
                   {%- else -%}
@@ -353,178 +368,18 @@ sensor:
       - type: processor_use
       - type: processor_temperature
       - type: memory_free
-      
-# WeatherUnderground sensors
-  - platform: wundergroundpws
-    api_key: !secret wunderground_PWS_API_key
-    pws_id: KAZFOUNT19
-    latitude: 33.6075
-    longitude: -111.7465
-    numeric_precision: none
-    monitored_conditions:
-      - humidity
-      - temp
-      - dewpt
-      - heatIndex
-      - windChill
-      - precipRate
-      - precipTotal
-      - pressure
-      - windGust
-      - windSpeed
-      - weather_1d
-      - weather_1n
-      - weather_2d
-      - weather_2n
-      - weather_3d
-      - weather_3n
-      - weather_4d
-      - weather_4n
-      - weather_5d
-      - weather_5n
-      - winddir
-      - obsTimeLocal
-      - stationID
-      - elev
-      - today_summary
-      
-      - temp_high_1d
-      - temp_low_1d
-      - precip_1d
-      - precip_chance_1d
-      - wind_1d
 
-      - temp_high_2d
-      - temp_low_2d
-      - precip_2d
-      - precip_chance_2d
-      - wind_2d
+#wundergroundpws Sensors
 
-      - temp_high_3d
-      - temp_low_3d
-      - precip_3d
-      - precip_chance_3d
-      - wind_3d
+shell_command:
+  kill_rogue_ha: pgrep -f 'python3 -m homeassistant --config /config' |awk 'NR >= 2' | xargs -n1 kill -9
 
-      - temp_high_4d
-      - temp_low_4d
-      - precip_4d
-      - precip_chance_4d
-      - wind_4d
-
-      - temp_high_5d
-      - temp_low_5d
-      - precip_5d
-      - precip_chance_5d
-      - wind_5d
-
-timer:    
+timer:
   garage_door:
     duration: '00:15:00'
 
-weather:
-  - platform: template
-    name: WUnderground Template
-    temperature_template: "{{ states('sensor.wupws_temp') | float }}"
-    humidity_template: "{{ states('sensor.wupws_humidity') | float }}"
-    pressure_template: "{{ states('sensor.wupws_pressure') | int }}"
-    wind_speed_template: "{{ states('sensor.wupws_windspeed') | float }}"
-    wind_bearing_template: "{{ states('sensor.wupws_winddir') | float }}"
-    attribution_template: "{{ state_attr('sensor.wupws_temp', 'attribution') }}"
-    unique_id: TrebaczPWSWeather
+# Required to generate HASS weather Entity for weather forecast card
 
-    condition_template: >
-
-      {% set condition_id = state_attr('sensor.wupws_weather_1d', 'entity_picture') | regex_replace(find='/local/wupws_icons/', replace='', ignorecase=False) | regex_replace(find='.png', replace='', ignorecase=False) | int(0) %}
-
-      {% if condition_id in [31] -%}
-        clear-night
-      {% elif condition_id in [26,27,28] -%}
-        cloudy
-      {% elif condition_id in [19,21,22] -%}
-        exceptional
-      {% elif condition_id in [20] -%}
-        fog
-      {% elif condition_id in [17,25,35] -%}
-        hail
-      {% elif condition_id in [47] -%}
-        lightning
-      {% elif condition_id in [26,27,28] -%}
-        cloudy
-      {% elif condition_id in [37,38] -%}
-        lightning-rainy
-      {% elif condition_id in [4] -%}
-        Lightning/ thunderstorms and rain
-      {% elif condition_id in [29,30] -%}
-        partlycloudy
-      {% elif condition_id in [9,11,12,39,45] -%}
-        rainy
-      {% elif condition_id in [5,13,14,15,16,41,42,43,46] -%}
-        snowy
-      {% elif condition_id in [6,7,8,10,18] -%}
-        snowy-rainy
-      {% elif condition_id in [32,33,34,36] -%}
-        sunny
-      {% elif condition_id in [0,1,2,3,23,24,40] -%}
-        windy
-      {% elif condition_id in [44] -%}
-        Not Available (N/A)
-      {%- else -%}
-        unknown
-      {%- endif %}
-
-
-    # forecast_template: "{{ state_attr('weather.dwd_weather_muenster_zentrum', 'forecast') }}"
-    forecast_template: >-
-      [
-        {
-          {% set dat = now() + timedelta( days = 1 ) %}
-          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
-          "temperature": {{ states('sensor.wupws_temp_high_1d') }},
-          "templow": {{ states('sensor.wupws_temp_low_1d') }},
-          "precipitation": {{ states('sensor.wupws_precip_1d') }},
-          "precipitation_probability": {{ states('sensor.wupws_precip_chance_1d') }},
-          "wind_speed": {{ states('sensor.wupws_wind_1d') }},
-          
-        },
-        {
-          {% set dat = now() + timedelta( days = 2 ) %}
-          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
-          "temperature": {{ states('sensor.wupws_temp_high_2d') }},
-          "templow": {{ states('sensor.wupws_temp_low_2d') }},
-          "precipitation": {{ states('sensor.wupws_precip_2d') }},
-          "precipitation_probability": {{ states('sensor.wupws_precip_chance_2d') }},
-          "wind_speed": {{ states('sensor.wupws_wind_2d') }},
-        },
-        {
-          {% set dat = now() + timedelta( days = 3 ) %}
-          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
-          "temperature": {{ states('sensor.wupws_temp_high_3d') }},
-          "templow": {{ states('sensor.wupws_temp_low_3d') }},
-          "precipitation": {{ states('sensor.wupws_precip_3d') }},
-          "precipitation_probability": {{ states('sensor.wupws_precip_chance_3d') }},
-          "wind_speed": {{ states('sensor.wupws_wind_3d') }},
-        },
-        {
-          {% set dat = now() + timedelta( days = 4 ) %}
-          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
-          "temperature": {{ states('sensor.wupws_temp_high_4d') }},
-          "templow": {{ states('sensor.wupws_temp_low_4d') }},
-          "precipitation": {{ states('sensor.wupws_precip_4d') }},
-          "precipitation_probability": {{ states('sensor.wupws_precip_chance_4d') }},
-          "wind_speed": {{ states('sensor.wupws_wind_4d') }},
-        },
-        {
-          {% set dat = now() + timedelta( days = 5 ) %}
-          "datetime": "{{ dat.strftime("%Y-%m-%dT00:00:00Z") }}",
-          "temperature": {{ states('sensor.wupws_temp_high_5d') }},
-          "templow": {{ states('sensor.wupws_temp_low_5d') }},
-          "precipitation": {{ states('sensor.wupws_precip_5d') }},
-          "precipitation_probability": {{ states('sensor.wupws_precip_chance_5d') }},
-          "wind_speed": {{ states('sensor.wupws_wind_5d') }},
-        }
-      ]
-      
 panel_iframe:
   # Zigbee2mqtt menu
   zigbee2mqtt:

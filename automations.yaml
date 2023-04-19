@@ -120,6 +120,9 @@
   - condition: state
     entity_id: binary_sensor.all_windows
     state: 'off'
+  - condition: numeric_state
+    entity_id: sensor.average_house_temp
+    above: 76
   action:
   - data:
       message: Open the windows - it's cooler outside.
@@ -330,7 +333,7 @@
     device_id: 73cb9fef06de261a7786697780cdb740
     entity_id: sensor.water_softener
     domain: sensor
-    above: 20
+    above: 22
     for:
       hours: 1
       minutes: 0
@@ -354,6 +357,11 @@
     device_id: d7a802679c81049ee90bb2651e396fc0
     entity_id: switch.pool_light
     domain: switch
+  - type: turn_on
+    device_id: f52c2e571463e79e35abe743bdfe196a
+    entity_id: light.living_room_shelf_light
+    domain: light
+    brightness_pct: 50
   mode: single
 - id: '1653879586582'
   alias: Turn off at 10:30 PM
@@ -389,14 +397,14 @@
   alias: Alert when MQTT outside temperature is not updating
   description: ''
   trigger:
-  - entity_id:
+  - platform: state
+    entity_id:
     - sensor.outside_temperature
-    platform: state
     for:
       hours: 0
-      minutes: 1
+      minutes: 15
       seconds: 0
-    to: unkown
+    to: unavailable
   condition:
   action:
   - service: notify.persistent_notification
@@ -404,15 +412,6 @@
       message: Outside temperature not reporting
   initial_state: true
   mode: single
-- id: '1658687930209'
-  alias: Garage Bench Light
-  description: ''
-  use_blueprint:
-    path: freakshock88/motion_illuminance_activated_entity.yaml
-    input:
-      motion_sensor: binary_sensor.garage_motion_occupancy
-      target_entity: switch.garage_bench_light
-      no_motion_wait: '5'
 - id: '1659286961861'
   alias: "[\U0001F4E3] Notify when garage door was left open for too long (TTS Only)"
   description: ''
@@ -436,11 +435,11 @@
   action:
   - service: tts.google_translate_say
     data:
-      message: Garage door has been open for 15 minutes.
+      message: Garage door has been open for more than 15 minutes.
       entity_id: media_player.indoor_speakers
   - service: timer.start
     data:
-      duration: '900'
+      duration: '1800'
     target:
       entity_id: timer.garage_door
 - id: '1659903537321'
@@ -451,6 +450,11 @@
     platform: device
     device_id: e041a6830d52cb5be735ae2c3de4cd97
     entity_id: binary_sensor.garage_motion_occupancy
+    domain: binary_sensor
+  - type: motion
+    platform: device
+    device_id: d2696ffab52f9768de44074f52d119c4
+    entity_id: binary_sensor.garage_motion2_occupancy
     domain: binary_sensor
   condition: []
   action:
@@ -476,6 +480,15 @@
       hours: 0
       minutes: 4
       seconds: 0
+  - type: no_motion
+    platform: device
+    device_id: d2696ffab52f9768de44074f52d119c4
+    entity_id: binary_sensor.garage_motion2_occupancy
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 4
+      seconds: 0
   condition:
   - condition: device
     type: is_on
@@ -491,4 +504,98 @@
     device_id: a2431dce1555fadcc08f69cdda4bba3a
     entity_id: switch.garage_bench_light
     domain: switch
+  mode: single
+- id: '1670377011645'
+  alias: Laundry Room Light - On with Motion
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 3a01572856ad53b825e44cff27f7cc30
+    entity_id: binary_sensor.laundry_room_motion_occupancy
+    domain: binary_sensor
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 95d353fe6c19b5f51f1b47de78fcdf0f
+    entity_id: light.laundry_room_light
+    domain: light
+  mode: single
+- id: '1670377140726'
+  alias: Laundry Room Light - Off with no Motion
+  description: ''
+  trigger:
+  - type: no_motion
+    platform: device
+    device_id: 3a01572856ad53b825e44cff27f7cc30
+    entity_id: binary_sensor.laundry_room_motion_occupancy
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 30
+  condition:
+  - condition: device
+    type: is_on
+    device_id: 95d353fe6c19b5f51f1b47de78fcdf0f
+    entity_id: light.laundry_room_light
+    domain: light
+  action:
+  - type: turn_off
+    device_id: 95d353fe6c19b5f51f1b47de78fcdf0f
+    entity_id: light.laundry_room_light
+    domain: light
+  mode: single
+- id: '1670449072772'
+  alias: Kill Rogue HA Instances
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ states(''sensor.ha_instances'')| int -1 > 1}} '
+  condition: []
+  action:
+  - service: shell_command.kill_rogue_ha
+    data: {}
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+  mode: single
+- id: '1671750896869'
+  alias: Front Door Frigate Notification
+  description: ''
+  use_blueprint:
+    path: hunterjm/frigate_notification.yaml
+    input:
+      camera: front_door_camera
+      notify_device: c0bd997338544bec9df38214e2067309
+      zone_filter: true
+      zones:
+      - Front_Porch
+      labels:
+      - person
+      cooldown: 60
+- id: '1677345579044'
+  alias: Air Purifier On-Off
+  description: ''
+  use_blueprint:
+    path: EPMatt/on_off_schedule_state_persistence.yaml
+    input:
+      off_time: 07:00:00
+      automation_target:
+        entity_id: fan.mi_air_purifier_3_3h
+      on_time: '21:00:00'
+      trigger_at_homeassistant_startup: true
+- id: '1678054413946'
+  alias: Alert if pool thermometer is off wireless for 31 minutes
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{(as_timestamp(now()) - as_timestamp(states(''sensor.pool_thermometer_uptime'')))
+      // 60|int(0) > 31 }}'
+  action:
+  - service: persistent_notification.create
+    data:
+      message: Pool themometer offiline - try reset right button
   mode: single

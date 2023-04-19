@@ -1,11 +1,3 @@
-#  broker: 192.168.0.216
-#  port: 1883
-#  discovery: true
-  discovery_prefix: homeassistant
-#  discovery_prefix: zigbee2mqtt/bridge
-#  username: !secret mqtt_username
-#  password: !secret mqtt_password
-
 # WeeWX MQTT Sensors
   sensor:
     - name: "Wind Speed"
