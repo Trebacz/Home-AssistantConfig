@@ -36,10 +36,15 @@
   alias: Turn off AC and open windows
   description: ''
   trigger:
-  - entity_id: binary_sensor.warm_inside
+  - entity_id:
+    - binary_sensor.warm_inside
     from: 'off'
     platform: state
     to: 'on'
+    for:
+      hours: 0
+      minutes: 12
+      seconds: 0
   condition:
   - condition: or
     conditions:
@@ -50,7 +55,7 @@
       entity_id: climate.south_bedrooms
       state: cool
   - after: sunrise
-    after_offset: '1:00:00'
+    after_offset: '3:00:00'
     condition: sun
   - before: '22:00:00'
     condition: time
@@ -71,22 +76,29 @@
   alias: Windows - Close
   description: ''
   trigger:
-  - entity_id: binary_sensor.cool_inside
+  - entity_id:
+    - binary_sensor.cool_inside
     from: 'off'
     platform: state
     to: 'on'
+    for:
+      hours: 0
+      minutes: 2
+      seconds: 0
   condition:
   - condition: sun
     after: sunrise
   - condition: state
     entity_id: binary_sensor.all_windows
     state: 'on'
-  - condition: template
-    value_template: '{{ as_timestamp(now()) - as_timestamp(states.automation.close_windows.attributes.last_triggered)
-      | int > 7200 }}'
-  - condition: template
-    value_template: '{{ states.automation.close_windows.attributes.last_triggered
-      == none }}'
+  - condition: or
+    conditions:
+    - condition: template
+      value_template: '{{ as_timestamp(now()) - as_timestamp(states.automation.close_windows.attributes.last_triggered)
+        | int > 7200 }}'
+    - condition: template
+      value_template: '{{ states.automation.close_windows.attributes.last_triggered
+        == none }}'
   action:
   - data:
       message: Time to close the windows to keep the house cool.
@@ -99,24 +111,34 @@
       target:
       - '+18155292638'
       - '+18155297819'
-      - '+18157012174'
     service: notify.ha_twillio
+    enabled: false
+  - service: tts.google_translate_say
+    data:
+      cache: false
+      entity_id: media_player.indoor_speakers
+      message: Time to close the windows to keep the house cool.
   initial_state: true
   mode: single
 - id: '1599511189810'
   alias: Windows - Open
   description: ''
   trigger:
-  - entity_id: binary_sensor.warm_inside
+  - entity_id:
+    - binary_sensor.warm_inside
     from: 'off'
     platform: state
     to: 'on'
+    for:
+      hours: 0
+      minutes: 12
+      seconds: 0
   condition:
   - after: sunrise
     condition: sun
   - before: '22:00:00'
     condition: time
-    after: 00:00:00
+    after: '11:00:00'
   - condition: state
     entity_id: binary_sensor.all_windows
     state: 'off'
@@ -139,8 +161,8 @@
       target:
       - '+18155292638'
       - '+18155297819'
-      - '+18157012174'
     service: notify.ha_twillio
+    enabled: false
   initial_state: true
   mode: single
 - id: '1599954800487'
@@ -331,7 +353,7 @@
   - type: value
     platform: device
     device_id: 73cb9fef06de261a7786697780cdb740
-    entity_id: sensor.water_softener
+    entity_id: sensor.water_softener_salt_level_2023_water_softener
     domain: sensor
     above: 22
     for:
@@ -342,7 +364,12 @@
   action:
   - service: notify.persistent_notification
     data:
-      message: Softener salt low. Buy 80 lbs water softener salt.
+      message: Softener salt low. Buy 40 lbs water softener salt.
+  - delay:
+      hours: 24
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
   mode: single
 - id: '1653872562603'
   alias: Turn on at Sunset
@@ -598,4 +625,165 @@
   - service: persistent_notification.create
     data:
       message: Pool themometer offiline - try reset right button
+  mode: single
+- id: '1682652924902'
+  alias: Windows Open - Turn Central Fan On
+  description: ''
+  trigger:
+  - entity_id:
+    - binary_sensor.warm_inside
+    from: 'off'
+    platform: state
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  condition:
+  - after: sunrise
+    condition: sun
+  - before: '22:30:00'
+    condition: time
+    after: 06:00:00
+  - condition: state
+    entity_id: binary_sensor.all_windows
+    state: 'on'
+  - condition: numeric_state
+    entity_id: sensor.average_house_temp
+    above: 76
+  - condition: numeric_state
+    entity_id: sensor.power_powder_laundry_and_garag_2_1min
+    below: 75
+  action:
+  - data:
+      message: Open the windows - it's cooler outside.
+    service: persistent_notification.create
+    enabled: false
+  - service: tts.google_translate_say
+    data:
+      entity_id: media_player.indoor_speakers
+      message: Turn on the fan - it's cooler outside
+  - data:
+      message: Open the windows - it's cooler outside.
+    service: notify.notify
+    enabled: false
+  - data:
+      message: Open the windows - it's cooler outside.
+      target:
+      - '+18155292638'
+      - '+18155297819'
+    service: notify.ha_twillio
+    enabled: false
+  mode: single
+  initial_state: true
+- id: '1690241923823'
+  alias: Mailbox motion alert
+  description: ''
+  trigger:
+  - entity_id:
+    - binary_sensor.vibration_sensor_vibration
+    from: 'off'
+    platform: state
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  condition:
+  - after: sunrise
+    condition: sun
+  - before: '22:00:00'
+    condition: time
+    after: '11:00:00'
+  action:
+  - data:
+      message: Mailbox motion
+    service: persistent_notification.create
+  - service: tts.google_translate_say
+    data:
+      entity_id: media_player.indoor_speakers
+      message: Mailbox motion detected - mail may be here
+  - data:
+      message: Mailbox motion
+    service: notify.notify
+  - data:
+      message: Open the windows - it's cooler outside.
+      target:
+      - '+18155292638'
+      - '+18155297819'
+    service: notify.ha_twillio
+    enabled: false
+  mode: single
+  initial_state: true
+- id: '1690734668316'
+  alias: Emporia 1min sensor fix
+  description: Reloads Emporia Integration
+  trigger:
+  - platform: time_pattern
+    minutes: '15'
+    enabled: true
+  - platform: homeassistant
+    event: start
+  condition: []
+  action:
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+    enabled: false
+  - service: homeassistant.reload_config_entry
+    data: {}
+    target:
+      entity_id: sensor.power_vue_trebacz_123_1min
+  mode: single
+- id: '1690742890423'
+  alias: Energy - Set On-Peak Weekdays
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.energy_tariff_plan
+    attribute: Weekday Peak
+  condition: []
+  action:
+  - service: select.select_option
+    data:
+      option: On-Peak Weekdays
+    target:
+      entity_id: select.power_consumption
+  mode: single
+- id: '1690743051788'
+  alias: Energy - Set Super Off-Peak
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.energy_tariff_plan
+    attribute: Super Off Peak
+  condition: []
+  action:
+  - service: select.select_option
+    data:
+      option: Super Off-Peak
+    target:
+      entity_id: select.power_consumption
+  mode: single
+- id: '1690743172932'
+  alias: Energy - Set Off-Peak
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.energy_tariff_plan
+    attribute: Off Peak
+  - platform: homeassistant
+    event: start
+  condition: []
+  action:
+  - service: select.select_option
+    data:
+      option: Off-Peak
+    target:
+      entity_id: select.power_consumption
   mode: single

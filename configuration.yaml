@@ -20,8 +20,6 @@ tts:
 homeassistant:
   auth_mfa_modules:
     - type: totp
-  unit_system: imperial
-  country: US
 
 # Enable mqtt logging
 logger:
@@ -30,6 +28,12 @@ logger:
 #    homeassistant.components.mqtt: debug
     homeassistant.components.mqtt: warning
 #    custom_components.mail_and_packages: debug
+
+device_tracker:
+  - platform: bluetooth_le_tracker
+    new_device_defaults:
+      track_new_devices: true
+#  - platform: bluetooth_tracker
 
 #Enable stream
 stream:
@@ -151,7 +155,6 @@ binary_sensor:
         friendly_name: "Inside temperature cooler than outside"
         value_template: >
           {{ states('sensor.average_house_temp') | float(0) < states('sensor.outside_temperature') | float(0)}}
-            platform: template
 #  - platform: template
 #    sensors:
 #      motion_frontdoor:
@@ -193,13 +196,13 @@ binary_sensor:
           {{(as_timestamp(now()) - as_timestamp(states('sensor.pool_thermometer_uptime'))) // 60|int(0) > 31 }}
         device_class: problem
 
-    # Example configuration.yaml entry
-sensor:
-  - platform: command_line
-    name: ha_instances
-    command: pgrep -f 'python3 -m homeassistant --config /config' | wc -l
-    scan_interval: 60
+command_line:
+  - sensor:
+      name: ha_instances
+      command: pgrep -f 'python3 -m homeassistant --config /config' | wc -l
+      scan_interval: 60
 
+sensor:
 #  - platform: untappd
 #    username: Trebacz
 #    id: !secret untapped_id
@@ -334,20 +337,147 @@ sensor:
           {% endif %}
 # Purpleair End of DesciptionSensor
 
+
+# SRP Tariff
+  - platform: template
+    sensors:
+      energy_tariff:
+        friendly_name: 'SRP Energy Tariff'
+        unit_of_measurement: 'USD/kWh'
+        value_template: >
+          {% set tariff = { "WeekdayPeak": 0.3637, "OffPeak": 0.1180, "SuperOffPeak": 0.0433 } %}
+          {% set time = { "month": (now().strftime('%m') | int), "hour": (now().strftime('%H') | int), "weekday": (now().weekday() | int ) } %}
+          {%if ((time.hour > 18) or (time.hour < 21)) and (time.weekday < 5) %}
+              {{ tariff.WeekdayPeak }}
+          {%elif ((time.hour > 9) or (time.hour < 15)) and (time.weekday < 5) %}
+              {{ tariff.SuperOffPeak }}
+          {%else%}
+              {{ tariff.OffPeak }}
+          {%endif%}
+          
+  - platform: template
+    sensors:
+      energy_tariff_plan:
+        friendly_name: 'SRP Energy Tariff Plan'
+        value_template: >
+          {% set time = { "month": (now().strftime('%m') | int), "hour": (now().strftime('%H') | int), "weekday": (now().weekday() | int ) } %}
+          {%if ((time.hour > 18) or (time.hour < 21)) and (time.weekday < 5) %}
+            Weekday Peak
+          {%elif ((time.hour > 9) or (time.hour < 15)) and (time.weekday < 5) %}
+            Super Off Peak
+          {%else%}
+            Off Peak
+          {%endif%}
+
+  - platform: template
+    sensors:
+      energy_tariff_season:
+        friendly_name: 'SRP Energy Tariff Season'
+        value_template: >
+          {% set time = { "month": (now().strftime('%m') | int ) } %}
+          {%if ((time.month < 5) or (time.month > 10)) %}
+              SRP Winter
+          {%elif ((time.month == 7) or (time.month == 8)) %}
+              SRP Summer Peak
+          {%else%}
+              SRP Summer
+          {%endif%}
+          
+  - platform: template
+    sensors:
+      energy_tariff_test:
+        friendly_name: 'SRP Energy Tariff Test'
+        unit_of_measurement: 'USD/kWh'
+        value_template: >
+          {% set time = { "month": (now().strftime('%m') | int), "hour": (now().strftime('%H') | int), "weekday": (now().weekday() | int ) } %}
+          {%if ((time.month < 5) or (time.month > 10)) %} {# November through April - Winter #}
+              {% set tariff = { "WeekdayPeak": 0.0987, "OffPeak": 0.0987, "SuperOffPeak": 0.0433 } %}
+              {%if ((time.hour > 18) or (time.hour < 21)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%elif ((time.hour > 9) or (time.hour < 15)) and (time.weekday < 5) %}
+                {{ tariff.SuperOffPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%elif ((time.month == 7) or (time.month == 8)) %} {# July and August - Summer Peak #}
+              {% set tariff = { "WeekdayPeak": 0.3637, "OffPeak": 0.1180, "SuperOffPeak": 0.0433 } %}
+              {%if ((time.hour > 18) or (time.hour < 21)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%elif ((time.hour > 9) or (time.hour < 15)) and (time.weekday < 5) %}
+                {{ tariff.SuperOffPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%else%} {# May June September October - Summer #}
+              {% set tariff = { "WeekdayPeak": 0.3572, "OffPeak": 0.1096, "SuperOffPeak": 0.0433 } %}
+              {%if ((time.hour > 18) or (time.hour < 21)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%elif ((time.hour > 9) or (time.hour < 15)) and (time.weekday < 5) %}
+                {{ tariff.SuperOffPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%endif%}
+          
+  - platform: template
+    sensors:
+      energy_tariff_ez_3:
+        friendly_name: 'SRP Energy Tariff EZ-3'
+        unit_of_measurement: 'USD/kWh'
+        value_template: >
+          {% set time = { "month": (now().strftime('%m') | int), "hour": (now().strftime('%H') | int), "weekday": (now().weekday() | int ) } %}
+          {%if ((time.month < 5) or (time.month > 10)) %} {# November through April - Winter #}
+              {% set tariff = { "WeekdayPeak": 0.1157, "OffPeak": 0.8.32 } %}
+              {%if ((time.hour > 15) or (time.hour < 18)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%elif ((time.month == 7) or (time.month == 8)) %} {# July and August - Summer Peak #}
+              {% set tariff = { "WeekdayPeak": 0.3520, "OffPeak": 0.0929 } %}
+              {%if ((time.hour > 15) or (time.hour < 18)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%else%} {# May June September October - Summer #}
+              {% set tariff = { "WeekdayPeak": 0.2971, "OffPeak": 0.0905 } %}
+              {%if ((time.hour > 15) or (time.hour < 18)) and (time.weekday < 5) %}
+                {{ tariff.WeekdayPeak }}
+              {%else%}
+                {{ tariff.OffPeak }}
+              {%endif%}
+          {%endif%}
+          
+  - platform: template
+    sensors:
+      energy_tariff_plan_ez_3:
+        friendly_name: 'SRP Energy Tariff Plan EZ-3'
+        value_template: >
+          {% set time = { "month": (now().strftime('%m') | int), "hour": (now().strftime('%H') | int), "weekday": (now().weekday() | int ) } %}
+          {%if ((time.hour > 15) or (time.hour < 18)) and (time.weekday < 5) %}
+              Weekday Peak
+          {%else%}
+              Off Peak
+          {%endif%}
+
+# SRP Tariff end
+
 # Water Softner Level Sensors
   - platform: template
     sensors:
       water_softener_percentage:
          friendly_name: "Water Softener Percentage"
          unit_of_measurement: '%'
-         value_template: "{{ ((states('sensor.water_softener')|float * -4.00) + 100.00)| round (2)}}"
+#         value_template: "{{ ((states('sensor.water_softener')|float(0) * -4.00) + 100.00)| round (2)}}"
+         value_template: "{{ ((states('sensor.water_softener_salt_level_2023_water_softener')|float(0) * -4.00) + 100.00)| round (2)}}"
 
   - platform: template
     sensors:
       water_softener_need_filled:
         friendly_name: "Water Softener - Needs filled?"
         value_template: >-
-          {% if states('sensor.water_softener_percentage')| float < 10 %}
+          {% if states('sensor.water_softener_percentage')| float(0) < 10 %}
             on
           {% else %}
             off
