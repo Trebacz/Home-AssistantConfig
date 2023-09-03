@@ -263,7 +263,6 @@
         - bcb86309d2fa3856e42ccc4e023c0901
         - 91e0e8ef4d1bb7304ca42282a613b7b9
         - c78075d1bfd6a491cb01eccd7c7d05ac
-        - de3fee10eb91b4c209f2d4f0bdccb6c3
         - 0039dd29816412a7480c21bf96b2311c
       trigger_at_homeassistant_startup: true
 - id: mqtt_garage_door_status
@@ -293,10 +292,15 @@
   alias: Front Door Motion to Living Room TV
   description: ''
   trigger:
-  - type: motion
+  - type: turned_on
     platform: device
-    device_id: 117d653311e2ec12bef6b585bc7f9a29
-    entity_id: binary_sensor.camera6_front_door_motion
+    device_id: be6ea5be032d02c16f362df69632b8a4
+    entity_id: 27b6cbc252af714a1284af6ec14b5219
+    domain: binary_sensor
+  - type: turned_on
+    platform: device
+    device_id: be6ea5be032d02c16f362df69632b8a4
+    entity_id: 42a7f04884918a9549f641a14345ecee
     domain: binary_sensor
   condition:
   - condition: time
@@ -307,7 +311,14 @@
     - condition: numeric_state
       entity_id: sensor.wind_speed
       below: '5'
+    enabled: false
   action:
+  - service: media_player.turn_on
+    data: {}
+    target:
+      device_id:
+      - 18cbba96da76862a2509ba42946eafa1
+    enabled: false
   - service: media_player.select_source
     data:
       source: Chromecast
@@ -316,13 +327,13 @@
       - 18cbba96da76862a2509ba42946eafa1
   - service: media_player.play_media
     target:
-      entity_id: media_player.living_room_tv
+      entity_id: media_player.living_room_samsung_tv_smart
     data:
-      media_content_id: media-source://camera/camera.camera6_front_door
+      media_content_id: media-source://camera/camera.front_door_camera_2
       media_content_type: application/vnd.apple.mpegurl
     metadata:
-      title: Camera 6 - Front Door
-      thumbnail: /api/camera_proxy/camera.camera6_front_door
+      title:
+      thumbnail: /api/camera_proxy/camera.front_door_camera_2
       media_class: video
       children_media_class:
       navigateIds:
@@ -337,14 +348,7 @@
   - service: media_player.turn_off
     data: {}
     target:
-      entity_id:
-      - media_player.living_room_tv
-  - service: media_player.turn_off
-    data: {}
-    target:
-      device_id:
-      - 18cbba96da76862a2509ba42946eafa1
-      - f625b0ace9d363f8adba50c62e78471f
+      device_id: 18cbba96da76862a2509ba42946eafa1
   mode: parallel
 - id: '1652032341234'
   alias: Water Softener Level Low
@@ -744,7 +748,7 @@
   - platform: state
     entity_id:
     - sensor.energy_tariff_plan
-    attribute: Weekday Peak
+    to: Weekday Peak
   condition: []
   action:
   - service: select.select_option
@@ -760,7 +764,7 @@
   - platform: state
     entity_id:
     - sensor.energy_tariff_plan
-    attribute: Super Off Peak
+    to: Super Off Peak
   condition: []
   action:
   - service: select.select_option
@@ -776,7 +780,7 @@
   - platform: state
     entity_id:
     - sensor.energy_tariff_plan
-    attribute: Off Peak
+    to: Off Peak
   - platform: homeassistant
     event: start
   condition: []
@@ -786,4 +790,67 @@
       option: Off-Peak
     target:
       entity_id: select.power_consumption
+  mode: single
+- id: '1691864056777'
+  alias: Kitchen Tablet Battery Management
+  description: ''
+  use_blueprint:
+    path: seamus65/wallpanel-battery-management.yaml
+    input:
+      charger: switch.ha_tablet_outlet
+      battery: sensor.hipad_max_battery_level
+- id: '1691877151399'
+  alias: Kitchen Tablet Screen Wake Up
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.kitchen_motion_occupancy
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - service: switch.turn_on
+    data: {}
+    target:
+      entity_id:
+      - switch.hipad_max_screen
+    enabled: true
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - service: fully_kiosk.load_url
+    data:
+      url: https://ha.trebacz.com/lovelace/default_view
+    target:
+      device_id: b20bca5b0eb68748d9e979c24e26bbef
+    enabled: false
+  - service: fully_kiosk.set_config
+    data: {}
+    target:
+      device_id: b20bca5b0eb68748d9e979c24e26bbef
+      entity_id: number.hipad_max_screen_off_timer
+    enabled: false
+  mode: single
+- id: '1691878335827'
+  alias: Kitchen Tablet Load App
+  description: ''
+  trigger:
+  - platform: time_pattern
+    hours: '6'
+  - platform: time_pattern
+    hours: '12'
+  - platform: time_pattern
+    hours: '18'
+  - platform: time_pattern
+    hours: '21'
+  condition: []
+  action:
+  - service: notify.mobile_app_sm_t290
+    data:
+      message: command_webview
   mode: single

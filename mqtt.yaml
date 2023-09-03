@@ -142,10 +142,10 @@
 # Pool Thermometer MQTT End of Sensors
 
 # RTL_433 MQTT Sensors
-    - name: Schrader_pressure_0649868
-      state_topic: "rtl__433/rackable2013internal2021/devices/TPMS/Schrader/0649868/pressure_kPa"
-      device_class: Pressure
-      unique_id: 0649868_pressure
+#    - name: Schrader_pressure_0649868
+#      state_topic: "rtl__433/rackable2013internal2021/devices/TPMS/Schrader/0649868/pressure_kPa"
+#      device_class: Pressure
+#      unique_id: 0649868_pressure
 #      unit_of_measurement: 'psi'
 # RTL_433 MQTT End of Sensors
 
@@ -165,7 +165,7 @@
       state_topic: "homeassistant/garage/state"
       command_topic: "shellies/shelly1-E8DB84D6C1D8/relay/0/command"
       availability_topic: "shellies/shelly1-E8DB84D6C1D8/online"
-      retain: false
+      retain: true
       payload_open: "on"
       payload_close: "on"
       payload_stop: "on"
@@ -176,6 +176,3 @@
       device_class: "garage"
       unique_id: "shelly1-E8DB84D6C1D8"
       #optimistic: true
-
-
-

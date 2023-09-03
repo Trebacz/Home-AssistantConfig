@@ -117,10 +117,10 @@ spotcast:
   sp_dc: !secret sp_dc
   sp_key: !secret sp_key
 
-media_player:
-  - platform: samsungtv_tizen
-    host: 192.168.0.127
-    mac: 98:06:3c:33:0e:9a
+#media_player:
+#  - platform: samsungtv_tizen
+#    host: 192.168.0.127
+#    mac: 98:06:3c:33:0e:9a
 
 binary_sensor:
   - platform: ping
@@ -374,7 +374,7 @@ sensor:
                 {{ tariff.OffPeak }}
               {%endif%}
           {%endif%}
-                    
+
   - platform: template
     sensors:
       energy_tariff_plan:
