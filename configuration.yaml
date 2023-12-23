@@ -64,8 +64,7 @@ google_assistant:
 
 recorder:
   db_url: !secret recorder_db_url
-  commit_interval: 30 #defaults to 5
-  purge_keep_days: 10 #defaults to 10
+  commit_interval: 5 #defaults to 5
   exclude:
     domains:
 #      - automation
@@ -123,26 +122,6 @@ spotcast:
 #    mac: 98:06:3c:33:0e:9a
 
 binary_sensor:
-  - platform: ping
-    host: 192.168.0.1
-    count: 5
-    scan_interval: 60
-    name: Smoothwall Ping
-  - platform: ping
-    host: www.trebacz.com
-    count: 5
-    scan_interval: 60
-    name: Trebacz Ping
-  - platform: ping
-    host: google.com
-    count: 5
-    scan_interval: 60
-    name: Google Intenet Ping
-  - platform: ping
-    host: cam4.trebacz.com
-    count: 5
-    scan_interval: 60
-    name: Patio Camera Ping
   - platform: template
     sensors:
       warm_inside:
@@ -446,7 +425,12 @@ sensor:
           {%endif%}
 # SRP Tariff end
 
-# Water Softner Level Sensors
+    # Waste Collection Schedule Sensor
+  - platform: waste_collection_schedule
+    name: Republic Trash Pickup
+    # Waste Collection Schedule Sensor end
+
+    # Water Softner Level Sensors
   - platform: template
     sensors:
       water_softener_percentage:
@@ -465,7 +449,7 @@ sensor:
           {% else %}
             off
           {% endif %}
-# Water Softner Level End of Sensors
+    # Water Softner Level End of Sensors
 
 
 
@@ -503,3 +487,10 @@ http:
     - !secret trusted_proxy_NGINX
   ip_ban_enabled: true
   login_attempts_threshold: 10
+
+waste_collection_schedule:
+  sources:
+    - name: republicservices_com
+      args:
+        street_address: "15481 E Palisades Blvd, Fountain Hills, AZ, 85268"
+        method: 1

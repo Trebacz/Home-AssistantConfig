@@ -1,0 +1,12 @@
+group.family.all:
+    name: Family - Everyone
+    all: true
+    entities:
+        - person.david_trebacz
+        - person.wendi_trebacz
+group.family.any:
+    name: Family - Anyone
+    all: false
+    entities:
+        - person.david_trebacz
+        - person.wendi_trebacz

@@ -149,6 +149,29 @@
 #      unit_of_measurement: 'psi'
 # RTL_433 MQTT End of Sensors
 
+# Speedtest MQTT Sensors
+    - name: "Speedtest Ping"
+      state_topic: "homeassistant/speedtest/status/Ping"
+      value_template: "{{ value_json.val }}"
+      unit_of_measurement: 'ms'
+      device_class: 'duration'
+      icon: mdi:speedometer
+      unique_id: ST_int2021_ping
+    - name: "Speedtest Download"
+      state_topic: "homeassistant/speedtest/status/Download"
+      value_template: "{{ value_json.val }}"
+      unit_of_measurement: 'Mbit/s'
+      device_class: 'data_rate'
+      icon: mdi:speedometer
+      unique_id: ST_int2021_download
+    - name: "Speedtest Upload"
+      state_topic: "homeassistant/speedtest/status/Upload"
+      value_template: "{{ value_json.val }}"
+      unit_of_measurement: 'Mbit/s'
+      device_class: 'data_rate'
+      icon: mdi:speedometer
+      unique_id: ST_int2021_upload
+# Speedtest MQTT End of Sensors
 
 # binary sensors
   binary_sensor:

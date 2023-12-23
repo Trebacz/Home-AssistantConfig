@@ -2,11 +2,11 @@
   alias: Kitchen Leak Sensor Wet
   description: ''
   trigger:
-  - device_id: 81603e0c094d4158b29605ed1a7396c8
-    domain: binary_sensor
-    entity_id: binary_sensor.kitchen_leak_sensor_water
+  - type: moist
     platform: device
-    type: moist
+    device_id: 76c3f3ad4973170dd495f089b5151f37
+    entity_id: 215649934c04816ef60bbb30feb5761f
+    domain: binary_sensor
   condition: []
   action:
   - data:
@@ -20,11 +20,11 @@
   alias: Leak Sensor SMS
   description: ''
   trigger:
-  - device_id: 81603e0c094d4158b29605ed1a7396c8
-    domain: binary_sensor
-    entity_id: binary_sensor.kitchen_leak_sensor_water
+  - type: moist
     platform: device
-    type: moist
+    device_id: 76c3f3ad4973170dd495f089b5151f37
+    entity_id: 215649934c04816ef60bbb30feb5761f
+    domain: binary_sensor
   condition: []
   action:
   - data:
@@ -99,6 +99,8 @@
     - condition: template
       value_template: '{{ states.automation.close_windows.attributes.last_triggered
         == none }}'
+  - condition: time
+    before: '12:00:00'
   action:
   - data:
       message: Time to close the windows to keep the house cool.
@@ -381,7 +383,7 @@
   trigger:
   - platform: sun
     event: sunset
-    offset: 0
+    offset: -00:20:00
   condition: []
   action:
   - type: turn_on
@@ -393,6 +395,10 @@
     entity_id: light.living_room_shelf_light
     domain: light
     brightness_pct: 50
+  - service: switch.turn_on
+    data: {}
+    target:
+      entity_id: switch.christmas_lights
   mode: single
 - id: '1653879586582'
   alias: Turn off at 10:30 PM
@@ -410,6 +416,10 @@
     device_id: 58eb5e43ca7528aa407d808560975814
     entity_id: switch.kitchen_tv_and_computer_outlet
     domain: switch
+  - service: switch.turn_off
+    data: {}
+    target:
+      entity_id: switch.christmas_lights
   mode: single
 - id: '1655668385533'
   alias: Turn on at 6 AM
@@ -487,6 +497,15 @@
     device_id: d2696ffab52f9768de44074f52d119c4
     entity_id: binary_sensor.garage_motion2_occupancy
     domain: binary_sensor
+  - type: motion
+    platform: device
+    device_id: 117d653311e2ec12bef6b585bc7f9a29
+    entity_id: ca0f0a2309fbc45f7337e0d5fbf48d2d
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
   condition: []
   action:
   - type: turn_on
@@ -511,11 +530,31 @@
       hours: 0
       minutes: 4
       seconds: 0
+    enabled: false
   - type: no_motion
     platform: device
     device_id: d2696ffab52f9768de44074f52d119c4
     entity_id: binary_sensor.garage_motion2_occupancy
     domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 4
+      seconds: 0
+    enabled: false
+  - type: not_occupied
+    platform: device
+    device_id: d664cc238b2c42a61a90ab34254d8683
+    entity_id: 9ab283da3aaef6cea4a22ccdaab18e4b
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 4
+      seconds: 0
+    enabled: false
+  - platform: state
+    entity_id:
+    - binary_sensor.garage_motion_any
+    to: 'off'
     for:
       hours: 0
       minutes: 4
@@ -604,8 +643,10 @@
       zone_filter: true
       zones:
       - Front_Porch
+      - Driveway
       labels:
       - person
+      - car
       cooldown: 60
 - id: '1677345579044'
   alias: Air Purifier On-Off
@@ -810,7 +851,10 @@
       hours: 0
       minutes: 0
       seconds: 0
-  condition: []
+  condition:
+  - condition: state
+    entity_id: switch.hipad_max_screen
+    state: 'off'
   action:
   - service: switch.turn_on
     data: {}
@@ -853,4 +897,84 @@
   - service: notify.mobile_app_sm_t290
     data:
       message: command_webview
+  mode: single
+- id: '1703043249614'
+  alias: Front Door Frigate Hi Pad - Person and Car
+  description: ''
+  use_blueprint:
+    path: SgtBatten/Stable.yaml
+    input:
+      camera: camera.front_door_camera_2
+      notify_device: fe31d779ff6c0747b7575a67f3d3ef40
+      zones:
+      - Front_Porch
+      - Driveway
+      labels:
+      - person
+      - car
+      tv: false
+      message: A {{ label }} {{ 'is loitering' if loitering else 'was detected' }}
+        on the {{ camera_name }} camera{{ ' in the ' + entered_zones if entered_zones
+        else '.'}}
+      zone_filter: true
+      update_thumbnail: true
+      attachment: snapshot
+      base_url: ha.trebacz.com
+- id: '1703092739238'
+  alias: Frigate TTS Front Door Driveway Notifications
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - automation.front_door_frigate_notification
+    attribute: last_triggered
+  condition: []
+  action:
+  - wait_template: '{{ not is_state(''media_player.all_tts_speakers'', ''playing'')
+      }}'
+    timeout: 00:00:05
+  - service: tts.google_translate_say
+    data:
+      cache: false
+      entity_id: media_player.googlehome4636
+      message: Person or car detected in front
+  mode: single
+- id: '1703113663502'
+  alias: Frigate Person detected in Front TTS
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.front_porch_person_occupancy_2
+    - binary_sensor.driveway_person_occupancy_2
+    attribute: last_triggered
+  condition: []
+  action:
+  - wait_template: '{{ not is_state(''media_player.all_tts_speakers'', ''playing'')
+      }}'
+    timeout: 00:00:05
+  - service: tts.google_translate_say
+    data:
+      cache: false
+      entity_id: media_player.googlehome4636
+      message: Person detected in front
+  mode: single
+- id: '1703113747735'
+  alias: Frigate car in drivway TTS
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.driveway_car_occupancy_2
+    attribute: last_triggered
+  condition: []
+  action:
+  - wait_template: '{{ not is_state(''media_player.all_tts_speakers'', ''playing'')
+      }}'
+    timeout: 00:00:05
+  - service: tts.google_translate_say
+    data:
+      cache: false
+      entity_id: media_player.googlehome4636
+      message: Car in driveway
   mode: single
